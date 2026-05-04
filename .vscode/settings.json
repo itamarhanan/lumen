@@ -1,0 +1,11 @@
+{
+  "conventionalCommits.scopes": [
+    "client",
+    "repo",
+    "server",
+    "microservices",
+    "devops",
+    "ci",
+    "config"
+  ]
+}
