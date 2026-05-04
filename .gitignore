@@ -21,6 +21,7 @@ apps/**/.next/
 apps/**/out/
 
 # === Build ===
+.turbo
 apps/**/build
 
 # === TypeScript ===
@@ -40,3 +41,5 @@ apps/**/npm-debug.log*
 apps/**/yarn-debug.log*
 apps/**/yarn-error.log*
 apps/**/.pnpm-debug.log*
+
+
