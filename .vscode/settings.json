@@ -6,6 +6,8 @@
     "microservices",
     "devops",
     "ci",
-    "config"
+    "config",
+    "packages/config",
+    "ingest"
   ]
 }
