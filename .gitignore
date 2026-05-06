@@ -1,8 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/
 
 # === Dependencies ===
-/node_modules
-apps/**/node_modules
+**/node_modules
 
 # === Yarn ===
 apps/**/.pnp
@@ -23,6 +22,7 @@ apps/**/out/
 # === Build ===
 .turbo
 apps/**/build
+apps/**/dist/
 
 # === TypeScript ===
 apps/**/*.tsbuildinfo
@@ -43,3 +43,5 @@ apps/**/yarn-error.log*
 apps/**/.pnpm-debug.log*
 
 
+# === Clickhouse ===
+clickhouse/*
