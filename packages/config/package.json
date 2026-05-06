@@ -1,0 +1,16 @@
+{
+  "name": "@lumen/config",
+  "version": "0.0.0",
+  "private": true,
+  "files": [
+    "tsconfig*.json"
+  ],
+  "exports": {
+    "./base": "./tsconfig.base.json",
+    "./www": "./tsconfig.www.json",
+    "./ingest": "./tsconfig.ingest.json",
+    "./processor": "./tsconfig.processor.json"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1"
+}
