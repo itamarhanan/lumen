@@ -1,5 +1,5 @@
 {
-  "extends": "../../packages/config/tsconfig.processor.json",
+  "extends": "@lumen/config/processor",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist"
