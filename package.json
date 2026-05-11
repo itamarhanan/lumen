@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "turbo dev --concurrency 5"
+    "dev": "turbo dev --concurrency 5",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "check-types": "turbo check-types"
   },
   "keywords": [],
   "author": "",
