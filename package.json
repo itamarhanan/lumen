@@ -14,7 +14,9 @@
   "license": "ISC",
   "packageManager": "pnpm@10.28.1",
   "devDependencies": {
-    "turbo": "^2.9.8"
+    "eslint": "^10.3.0",
+    "turbo": "^2.9.8",
+    "typescript-eslint": "^8.59.2"
   },
   "dependencies": {
     "typescript": "^5.9.3"

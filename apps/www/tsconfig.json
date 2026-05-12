@@ -1,8 +1,17 @@
 {
-  "extends": "../../packages/config/tsconfig.www.json",
+  "extends": "@lumen/config/www",
   "compilerOptions": {
     "paths": {
       "@/*": ["./src/*"]
     }
-  }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
 }

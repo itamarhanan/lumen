@@ -1,0 +1,9 @@
+app = "lumen-processor"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "apps/processor/Dockerfile"
+
+[machines]
+  auto_stop = false
+  min_machines_running = 1

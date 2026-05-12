@@ -1,0 +1,17 @@
+app = "lumen-ingest"
+primary_region = "lhr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[http_service]
+  internal_port = 3001
+  force_https = true
+  auto_stop_machines = false
+  min_machines_running = 1
+
+[checks.health]
+  method = "GET"
+  path = "/health"
+  interval = "10s"
+  timeout = "2s"

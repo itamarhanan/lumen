@@ -1,5 +1,5 @@
 {
-  "extends": "../../packages/config/tsconfig.ingest.json",
+  "extends": "@lumen/config/ingest",
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
