@@ -4,7 +4,11 @@ import nextTs from "eslint-config-next/typescript";
 
 const eslintConfig = defineConfig([
   {
-    tsconfigRootDir: import.meta.dirname,
+    languageOptions: {
+      parserOptions: {
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
   },
   ...nextVitals,
   ...nextTs,
