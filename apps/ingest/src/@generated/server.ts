@@ -8,18 +8,14 @@
  * Learn more: https://nestjs-trpc.io
  */
 
-import { initTRPC } from '@trpc/server';
-import { z } from 'zod';
+import { initTRPC } from "@trpc/server";
+import { z } from "zod";
 
 const t = initTRPC.create();
 const publicProcedure = t.procedure;
 
 const appRouter = t.router({
-  collector: t.router({
-    collect: publicProcedure.mutation(
-      async () => 'PLACEHOLDER_DO_NOT_REMOVE' as any,
-    ),
-  }),
+  collector: t.router({})
 });
 
 export type AppRouter = typeof appRouter;
