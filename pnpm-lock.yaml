@@ -302,6 +302,34 @@ importers:
         specifier: ^4
         version: 4.22.0
 
+  packages/sdk:
+    devDependencies:
+      '@lumen/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/sdk-react:
+    dependencies:
+      '@lumen/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@lumen/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      react:
+        specifier: ^19
+        version: 19.2.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
 packages:
 
   '@alloc/quick-lru@5.2.0':
