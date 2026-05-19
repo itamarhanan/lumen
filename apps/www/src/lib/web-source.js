@@ -16,15 +16,31 @@
 
   // Session
   var SESSION_KEY = "lumen_sid";
+  var VISITOR_KEY = "lumen_vid";
   var TRAITS_KEY = "lumen_traits";
+
+  function generateId() {
+    try { return crypto.randomUUID(); }
+    catch (_) { return Date.now() + "-" + Math.random().toString(36).slice(2, 10); }
+  }
 
   function getSessionId() {
     var sid = sessionStorage.getItem(SESSION_KEY);
     if (!sid) {
-      sid = crypto.randomUUID();
+      sid = generateId();
       sessionStorage.setItem(SESSION_KEY, sid);
     }
     return sid;
+  }
+
+  function getVisitorId() {
+    var id = null;
+    try { id = localStorage.getItem(VISITOR_KEY); } catch (_) {}
+    if (!id) {
+      id = generateId();
+      try { localStorage.setItem(VISITOR_KEY, id); } catch (_) {}
+    }
+    return id;
   }
 
   function getTraits() {
@@ -36,11 +52,13 @@
   }
 
   function setTraits(incoming) {
-    var merged = Object.assign(getTraits(), incoming);
-    // coerce all values to string — ClickHouse Map(String,String)
-    var coerced = {};
-    for (var k in merged) coerced[k] = String(merged[k]);
-    sessionStorage.setItem(TRAITS_KEY, JSON.stringify(coerced));
+    try {
+      var merged = Object.assign(getTraits(), incoming);
+      // coerce all values to string — ClickHouse Map(String,String)
+      var coerced = {};
+      for (var k in merged) coerced[k] = String(merged[k]);
+      sessionStorage.setItem(TRAITS_KEY, JSON.stringify(coerced));
+    } catch (_) {}
   }
 
   // Send
@@ -48,21 +66,22 @@
     var body = JSON.stringify(payload);
     if (navigator.sendBeacon) {
       var blob = new Blob([body], { type: "application/json" });
-      navigator.sendBeacon(INGEST_URL, blob);
-    } else {
-      fetch(INGEST_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: body,
-        keepalive: true,
-      }).catch(function () {}); // analytics must never throw
+      var queued = navigator.sendBeacon(INGEST_URL, blob);
+      if (queued) return;
     }
+    fetch(INGEST_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: body,
+      keepalive: true,
+    }).catch(function () {}); // analytics must never throw
   }
 
   // Track
   var lastUrl = null;
+  var lastReferrer = document.referrer || undefined;
 
-  function track(type, name, eventMeta) {
+  function track(type, name, eventProps) {
     var url = location.href;
 
     // dedupe pageviews
@@ -71,18 +90,21 @@
       lastUrl = url;
     }
 
-    var meta = Object.assign(getTraits(), eventMeta || {});
+    var props = Object.assign(getTraits(), eventProps || {});
 
     send({
       siteId: SITE_ID,
       sessionId: getSessionId(),
+      visitorId: getVisitorId(),
       type: type,
       url: url,
-      referrer: document.referrer || "",
+      referrer: type === "pageview" ? (lastReferrer || undefined) : undefined,
       name: name || undefined,
-      meta: Object.keys(meta).length ? meta : undefined,
+      properties: Object.keys(props).length ? props : undefined,
       timestamp: Date.now(),
     });
+
+    if (type === "pageview") lastReferrer = url;
   }
 
   // SPA
