@@ -117,10 +117,11 @@ async function setup() {
   `);
 
   console.log("✅ RLS setup complete");
-  await client.end();
 }
 
-setup().catch((err) => {
-  console.error("❌ RLS setup failed:", err);
-  process.exit(1);
-});
+setup()
+  .catch((err) => {
+    console.error("❌ RLS setup failed:", err);
+    process.exit(1);
+  })
+  .finally(() => client.end());
