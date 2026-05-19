@@ -22,7 +22,7 @@ async function setup() {
 
   console.log("Granting schema usage...");
   await db.execute(sql`GRANT USAGE ON SCHEMA public TO lumen_api, lumen_processor`);
-  await db.execute(sql`GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO lumen_api`);
+  await db.execute(sql`GRANT SELECT ON ALL TABLES IN SCHEMA public TO lumen_api`);
   await db.execute(sql`GRANT SELECT, INSERT, UPDATE ON sessions TO lumen_processor`);
 
   console.log("Enabling RLS on all tables...");
