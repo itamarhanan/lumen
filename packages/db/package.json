@@ -18,13 +18,13 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.2",
+    "nanoid": "^5",
     "postgres": "^3.4.9"
   },
   "devDependencies": {
     "@lumen/config": "workspace:*",
     "@types/node": "^20",
     "drizzle-kit": "^0.31.10",
-    "nanoid": "^5",
     "tsx": "^4"
   },
   "license": "ISC",

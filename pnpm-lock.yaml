@@ -140,9 +140,6 @@ importers:
 
   apps/processor:
     dependencies:
-      '@lumen/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       dotenv:
         specifier: ^17.4.2
         version: 17.4.2
@@ -183,9 +180,6 @@ importers:
       '@base-ui/react':
         specifier: ^1.4.1
         version: 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
-      '@lumen/db':
-        specifier: workspace:*
-        version: link:../../packages/db
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -285,6 +279,9 @@ importers:
       drizzle-orm:
         specifier: ^0.45.2
         version: 0.45.2(postgres@3.4.9)
+      nanoid:
+        specifier: ^5
+        version: 5.1.11
       postgres:
         specifier: ^3.4.9
         version: 3.4.9
@@ -298,9 +295,6 @@ importers:
       drizzle-kit:
         specifier: ^0.31.10
         version: 0.31.10
-      nanoid:
-        specifier: ^5
-        version: 5.1.11
       tsx:
         specifier: ^4
         version: 4.22.0
