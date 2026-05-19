@@ -7,11 +7,18 @@ const tabs = [
   {
     id: "script",
     label: "Script tag",
-    code: `<script
-  src="https://cdn.lumen.sh/lumen.js"
-  data-site="YOUR_SITE_ID"
-  defer
-></script>`,
+    code: `<script src="https://lumen.sh/script/YOUR_SITE_ID" defer></script>
+
+<script>
+  // Track a pageview
+  lumen.pageview();
+
+  // Track a custom event
+  lumen.event("signup", { plan: "pro" });
+
+  // Set persistent traits
+  lumen.set({ role: "admin" });
+</script>`,
   },
   {
     id: "npm",
@@ -231,7 +238,7 @@ export function IntegrationSection() {
       el.value = currentTab.code;
       document.body.appendChild(el);
       el.select();
-      navigator.clipboard.writeText(el.textContent);
+      navigator.clipboard.writeText(el.value);
       document.body.removeChild(el);
     }
     setCopied(true);
