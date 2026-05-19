@@ -1,0 +1,2 @@
+ALTER TABLE "api_keys" ADD CONSTRAINT "api_keys_key_hash_unique" UNIQUE("key_hash");--> statement-breakpoint
+ALTER TABLE "sessions" ADD CONSTRAINT "uq_sessions_site_session" UNIQUE("site_id","session_id");
