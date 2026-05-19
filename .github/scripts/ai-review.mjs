@@ -5,7 +5,15 @@ import { fileURLToPath } from "url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
-  const diff = fs.readFileSync("/tmp/pr_diff.txt", "utf-8").trim();
+  let diff;
+  try {
+    diff = fs.readFileSync("/tmp/pr_diff.txt", "utf-8").trim();
+  } catch {
+    console.error("Failed to read diff file");
+    console.log("[]");
+    return;
+  }
+
   console.error(`Diff size: ${diff.length} chars`);
   if (!diff || diff.length < 20) {
     console.error("Diff too small, skipping review.");
@@ -13,10 +21,17 @@ async function main() {
     return;
   }
 
-  const prompt = fs.readFileSync(
-    path.resolve(__dirname, "../ai-review-prompt.md"),
-    "utf-8",
-  );
+  let prompt;
+  try {
+    prompt = fs.readFileSync(
+      path.resolve(__dirname, "../ai-review-prompt.md"),
+      "utf-8",
+    );
+  } catch {
+    console.error("Failed to read prompt file");
+    console.log("[]");
+    return;
+  }
 
   const userMsg = `Review this PR diff:\n\`\`\`diff\n${diff.slice(0, 40000)}\n\`\`\``;
 
@@ -26,7 +41,7 @@ async function main() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GH_MODELS_TOKEN || process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.GH_MODELS_TOKEN}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",

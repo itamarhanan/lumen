@@ -3,6 +3,7 @@ name: AI Code Review
 on:
   pull_request:
     branches: [main]
+    types: [opened]
 
 jobs:
   review:
@@ -25,10 +26,7 @@ jobs:
 
       - name: Run AI review
         env:
-          # Uses GH_MODELS_TOKEN (a PAT with models:read scope).
-          # Fall back to GITHUB_TOKEN if not set.
           GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: node .github/scripts/ai-review.mjs > /tmp/review.json
 
       - name: Post review comments
