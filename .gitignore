@@ -45,3 +45,7 @@ apps/**/.pnpm-debug.log*
 
 # === Clickhouse ===
 clickhouse/*
+
+# === Supabase ===
+supabase/.branches/
+supabase/.temp/
