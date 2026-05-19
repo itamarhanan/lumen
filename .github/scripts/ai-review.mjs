@@ -6,7 +6,9 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function main() {
   const diff = fs.readFileSync("/tmp/pr_diff.txt", "utf-8").trim();
+  console.error(`Diff size: ${diff.length} chars`);
   if (!diff || diff.length < 20) {
+    console.error("Diff too small, skipping review.");
     console.log("[]");
     return;
   }
@@ -24,7 +26,7 @@ async function main() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${process.env.GITHUB_TOKEN}`,
+        Authorization: `Bearer ${process.env.GH_MODELS_TOKEN || process.env.GITHUB_TOKEN}`,
       },
       body: JSON.stringify({
         model: "gpt-4o-mini",
@@ -36,9 +38,19 @@ async function main() {
     },
   );
 
+  console.error(`API status: ${resp.status} ${resp.statusText}`);
+  if (!resp.ok) {
+    const body = await resp.text();
+    console.error(`API error: ${body}`);
+    console.log("[]");
+    return;
+  }
+
   const data = await resp.json();
   const text = data.choices?.[0]?.message?.content || "[]";
-  console.log(JSON.stringify(parseJSON(text)));
+  console.error(`Raw response length: ${text.length}`);
+  const parsed = parseJSON(text);
+  console.log(JSON.stringify(parsed));
 }
 
 function parseJSON(text) {
@@ -51,4 +63,7 @@ function parseJSON(text) {
   }
 }
 
-main().catch(() => console.log("[]"));
+main().catch((err) => {
+  console.error("Script error:", err);
+  console.log("[]");
+});
