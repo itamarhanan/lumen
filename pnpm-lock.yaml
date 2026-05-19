@@ -180,6 +180,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.4.1
         version: 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@lumen/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -234,9 +237,6 @@ importers:
       tailwind-merge:
         specifier: ^3.5.0
         version: 3.5.0
-      terser:
-        specifier: ^5.47.1
-        version: 5.47.1
       tw-animate-css:
         specifier: ^1.4.0
         version: 1.4.0
@@ -271,6 +271,9 @@ importers:
       tailwindcss:
         specifier: ^4
         version: 4.2.4
+      terser:
+        specifier: ^5.47.1
+        version: 5.47.1
       typescript:
         specifier: ^5
         version: 5.9.3
