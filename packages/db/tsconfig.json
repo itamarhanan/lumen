@@ -1,0 +1,12 @@
+{
+  "extends": "@lumen/config/base",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "esModuleInterop": true,
+    "types": ["node"]
+  },
+  "include": ["src"]
+}
