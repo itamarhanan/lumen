@@ -17,7 +17,7 @@ const scriptCache = new Map<string, { code: string; etag: string; expires: numbe
 
 const rateLimitBuckets = new Map<string, { count: number; resetAt: number }>();
 
-const inflight = new Map<string, Promise<{ code: string; etag: string }>>();
+const inflight = new Map<string, Promise<{ code: string; etag: string } | null>>();
 
 function getClientIp(req: NextRequest): string {
   return req.headers.get("x-forwarded-for")?.split(",")[0]?.trim()
@@ -96,6 +96,7 @@ export async function GET(
   const inflightPromise = inflight.get(publicId);
   if (inflightPromise) {
     const result = await inflightPromise;
+    if (!result) return new NextResponse("Not found", { status: 404 });
     return serveScript(result.code, result.etag);
   }
 
