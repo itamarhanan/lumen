@@ -1,9 +1,7 @@
-import postgres from "postgres";
 import { sql } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
+import { createClient } from "./index.js";
 
-const client = postgres(process.env.DATABASE_URL!);
-const db = drizzle(client);
+const { db, close } = createClient("admin");
 
 async function setup() {
   console.log("Creating database roles...");
@@ -124,4 +122,4 @@ setup()
     console.error("❌ RLS setup failed:", err);
     process.exit(1);
   })
-  .finally(() => client.end());
+  .finally(() => close());

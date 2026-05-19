@@ -1,14 +1,12 @@
 import { eq } from "drizzle-orm";
-import postgres from "postgres";
-import { drizzle } from "drizzle-orm/postgres-js";
 import { createHash } from "node:crypto";
 import { nanoid } from "nanoid";
+import { createClient } from "./index.js";
 import * as schema from "./schema/index.js";
 
 const SEED_USER_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
-const client = postgres(process.env.DATABASE_URL!);
-const seedDb = drizzle(client, { schema });
+const { db: seedDb, close } = createClient("admin");
 
 async function seed() {
   console.log("Seeding user...");
@@ -69,4 +67,4 @@ seed()
     console.error("❌ Seed failed:", err);
     process.exit(1);
   })
-  .finally(() => client.end());
+  .finally(() => close());
