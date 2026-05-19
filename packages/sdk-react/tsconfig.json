@@ -1,0 +1,9 @@
+{
+  "extends": "@lumen/config/base",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src",
+    "jsx": "react-jsx"
+  },
+  "include": ["src"]
+}
