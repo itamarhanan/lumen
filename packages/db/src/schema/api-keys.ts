@@ -3,7 +3,7 @@ import { sites } from "./sites.js";
 
 export const apiKeys = pgTable("api_keys", {
   id: uuid("id").defaultRandom().primaryKey(),
-  siteId: uuid("site_id").notNull().references(() => sites.id),
+  siteId: uuid("site_id").notNull().references(() => sites.id, { onDelete: "cascade" }),
   keyHash: text("key_hash").notNull().unique(),
   label: text("label").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),

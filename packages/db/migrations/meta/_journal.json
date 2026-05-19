@@ -15,6 +15,13 @@
       "when": 1779193478622,
       "tag": "0001_add_unique_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779212432075,
+      "tag": "0002_add_cascade_deletes",
+      "breakpoints": true
     }
   ]
 }
