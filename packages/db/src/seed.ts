@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import { nanoid } from "nanoid";
@@ -16,6 +17,17 @@ async function seed() {
     name: "Dev User",
   }).onConflictDoNothing();
 
+  const existingSites = await db.select({ id: schema.sites.id })
+    .from(schema.sites)
+    .where(eq(schema.sites.userId, SEED_USER_ID))
+    .limit(1);
+
+  if (existingSites.length > 0) {
+    console.log("Sites already exist, skipping site/key seed.");
+    await client.end();
+    return;
+  }
+
   console.log("Seeding sites...");
   const site1Id = crypto.randomUUID();
   await db.insert(schema.sites).values({
@@ -25,7 +37,7 @@ async function seed() {
     domain: "blog.example.com",
     publicId: nanoid(12),
     ingestUrl: "http://localhost:3001/api/collect",
-  }).onConflictDoNothing();
+  });
 
   const site2Id = crypto.randomUUID();
   await db.insert(schema.sites).values({
@@ -35,14 +47,14 @@ async function seed() {
     domain: "store.example.com",
     publicId: nanoid(12),
     ingestUrl: "http://localhost:3001/api/collect",
-  }).onConflictDoNothing();
+  });
 
   console.log("Seeding API keys...");
   await db.insert(schema.apiKeys).values({
     siteId: site1Id,
     keyHash: `dev-key-blog-${nanoid(32)}`,
     label: "Development",
-  }).onConflictDoNothing();
+  });
 
   console.log("✅ Seed complete");
   console.log(`   User: ${SEED_USER_ID}`);
