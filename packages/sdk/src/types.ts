@@ -12,7 +12,7 @@ export interface LumenClient {
   destroy(): void;
 }
 
-export type EventProperties = Record<string, string | number | boolean | null>;
+export type EventProperties = Record<string, unknown>;
 
 export interface BaseEvent {
   siteId: string;

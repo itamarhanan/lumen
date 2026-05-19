@@ -5,13 +5,30 @@ import { createTransport } from './transport';
 import { createSpaListener } from './spa';
 import { generateId } from './id';
 
+const VISITOR_KEY = 'lumen_vid';
+
+function getOrCreateVisitorId(): string {
+  try {
+    const existing = localStorage.getItem(VISITOR_KEY);
+    if (existing) return existing;
+  } catch {}
+  const id = generateId();
+  try { localStorage.setItem(VISITOR_KEY, id); } catch {}
+  return id;
+}
+
+function persistVisitorId(id: string): void {
+  try { localStorage.setItem(VISITOR_KEY, id); } catch {}
+}
+
 export function createLumen(config: LumenConfig): LumenClient {
   const { siteId, ingestUrl, autoTrack = true } = config;
   const { getSessionId, resetSession } = createSessionManager();
   const { send } = createTransport(ingestUrl);
 
-  let visitorId = generateId();
+  let visitorId = getOrCreateVisitorId();
   let lastUrl: string | null = null;
+  let lastReferrer: string | undefined = typeof document !== 'undefined' ? document.referrer || undefined : undefined;
 
   let spa: { destroy: () => void } | null = null;
 
@@ -31,10 +48,11 @@ export function createLumen(config: LumenConfig): LumenClient {
       visitorId,
       timestamp: Date.now(),
       url: currentUrl,
-      referrer: referrer ?? (typeof document !== 'undefined' ? document.referrer || undefined : undefined),
+      referrer: referrer ?? lastReferrer,
     };
 
     send(event);
+    lastReferrer = currentUrl;
   }
 
   function trackCustom(name: string, properties?: EventProperties) {
@@ -53,6 +71,7 @@ export function createLumen(config: LumenConfig): LumenClient {
 
   function identify(id: string) {
     visitorId = id;
+    persistVisitorId(id);
   }
 
   function destroy() {
