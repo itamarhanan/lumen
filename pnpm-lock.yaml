@@ -180,6 +180,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.4.1
         version: 1.4.1(@date-fns/tz@1.4.1)(@types/react@19.2.14)(date-fns@4.1.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      '@lumen/db':
+        specifier: workspace:*
+        version: link:../../packages/db
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -192,6 +195,9 @@ importers:
       date-fns:
         specifier: ^4.1.0
         version: 4.1.0
+      drizzle-orm:
+        specifier: ^0.45.2
+        version: 0.45.2(postgres@3.4.9)
       embla-carousel-react:
         specifier: ^8.6.0
         version: 8.6.0(react@19.2.4)
@@ -268,6 +274,9 @@ importers:
       tailwindcss:
         specifier: ^4
         version: 4.2.4
+      terser:
+        specifier: ^5.47.1
+        version: 5.47.1
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -298,6 +307,34 @@ importers:
       tsx:
         specifier: ^4
         version: 4.22.0
+
+  packages/sdk:
+    devDependencies:
+      '@lumen/config':
+        specifier: workspace:*
+        version: link:../config
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/sdk-react:
+    dependencies:
+      '@lumen/sdk':
+        specifier: workspace:*
+        version: link:../sdk
+    devDependencies:
+      '@lumen/config':
+        specifier: workspace:*
+        version: link:../config
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      react:
+        specifier: ^19
+        version: 19.2.4
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
 
 packages:
 
@@ -5764,8 +5801,8 @@ packages:
       uglify-js:
         optional: true
 
-  terser@5.46.2:
-    resolution: {integrity: sha512-uxfo9fPcSgLDYob/w1FuL0c99MWiJDnv+5qXSQc5+Ki5NjVNsYi66INnMFBjf6uFz6OnX12piJQPF4IpjJTNTw==}
+  terser@5.47.1:
+    resolution: {integrity: sha512-tPbLXTI6ohPASb/1YViL428oEHu6/qv1OxqYnfaonVCFHqx4+wCd95pHrQWsL5X4pl90CTyW9piSAsS2L0VoMw==}
     engines: {node: '>=10'}
     hasBin: true
 
@@ -11793,10 +11830,10 @@ snapshots:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
       schema-utils: 4.3.3
-      terser: 5.46.2
+      terser: 5.47.1
       webpack: 5.106.0
 
-  terser@5.46.2:
+  terser@5.47.1:
     dependencies:
       '@jridgewell/source-map': 0.3.11
       acorn: 8.16.0

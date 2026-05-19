@@ -5,6 +5,7 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "moduleDetection": "force",
+    "moduleResolution": "bundler",
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": false,
     "noUncheckedSideEffectImports": true,
