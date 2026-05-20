@@ -113,6 +113,11 @@
     _push.apply(history, arguments);
     track("pageview");
   };
+  var _replace = history.replaceState.bind(history);
+  history.replaceState = function () {
+    _replace.apply(history, arguments);
+    track("pageview");
+  };
   window.addEventListener("popstate", function () {
     track("pageview");
   });
