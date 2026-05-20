@@ -93,13 +93,6 @@ export async function GET(
     return serveScript(cached.code, cached.etag);
   }
 
-  const inflightPromise = inflight.get(publicId);
-  if (inflightPromise) {
-    const result = await inflightPromise;
-    if (!result) return new NextResponse("Not found", { status: 404 });
-    return serveScript(result.code, result.etag);
-  }
-
   const promise = (async () => {
     const site = await db
       .select({ ingestUrl: sites.ingestUrl })
@@ -124,15 +117,17 @@ export async function GET(
     return result;
   })();
 
-  inflight.set(publicId, promise);
+  // Register our promise, or pick up an in-flight one another request just stored
+  const winner = inflight.get(publicId) ?? promise;
+  const isFirst = winner === promise;
+  if (isFirst) inflight.set(publicId, promise);
+
   try {
-    const result = await promise;
-    if (!result) {
-      return new NextResponse("Not found", { status: 404 });
-    }
+    const result = await winner;
+    if (!result) return new NextResponse("Not found", { status: 404 });
     return serveScript(result.code, result.etag);
   } finally {
-    inflight.delete(publicId);
+    if (isFirst) inflight.delete(publicId);
   }
 }
 
