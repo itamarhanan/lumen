@@ -1,0 +1,28 @@
+{
+  "name": "@lumen/sdk-react",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@lumen/sdk": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": "^18.0 || ^19.0"
+  },
+  "devDependencies": {
+    "@lumen/config": "workspace:*",
+    "@types/react": "^19",
+    "react": "^19",
+    "typescript": "^5.9.3"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1"
+}

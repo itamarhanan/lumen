@@ -1,0 +1,32 @@
+{
+  "name": "@lumen/db",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./schema": "./src/schema/index.ts",
+    "./as-user": "./src/as-user.ts"
+  },
+  "scripts": {
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "tsx src/seed.ts",
+    "db:setup": "tsx src/setup-roles.ts",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "drizzle-orm": "^0.45.2",
+    "nanoid": "^5",
+    "postgres": "^3.4.9"
+  },
+  "devDependencies": {
+    "@lumen/config": "workspace:*",
+    "@types/node": "^20",
+    "drizzle-kit": "^0.31.10",
+    "tsx": "^4"
+  },
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1"
+}
