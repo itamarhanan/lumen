@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Req } from '@nestjs/common';
-import type { Request } from 'express';
+import { type Request } from 'express';
 import { LumenEventSchema } from './event.schema';
 import { CollectorService } from './collector.service';
 

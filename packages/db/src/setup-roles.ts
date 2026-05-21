@@ -28,18 +28,22 @@ async function setup() {
     await db.execute(sql`ALTER TABLE ${sql.identifier(table)} ENABLE ROW LEVEL SECURITY`);
   }
 
+  console.log("Revoking public access from Supabase default roles...");
+  await db.execute(sql`REVOKE SELECT ON ALL TABLES IN SCHEMA public FROM anon, authenticated`);
+  await db.execute(sql`ALTER DEFAULT PRIVILEGES IN SCHEMA public REVOKE SELECT ON TABLES FROM anon, authenticated`);
+
   console.log("Creating RLS policies for lumen_api...");
 
   await db.execute(sql`DROP POLICY IF EXISTS api_select_users ON users`);
   await db.execute(sql`
     CREATE POLICY "api_select_users" ON users FOR SELECT TO lumen_api
-    USING (id = nullif(current_setting('app.current_user_id', true), '')::uuid)
+    USING (id = (SELECT nullif(current_setting('app.current_user_id', true), '')::uuid))
   `);
 
   await db.execute(sql`DROP POLICY IF EXISTS api_select_sites ON sites`);
   await db.execute(sql`
     CREATE POLICY "api_select_sites" ON sites FOR SELECT TO lumen_api
-    USING (user_id = nullif(current_setting('app.current_user_id', true), '')::uuid)
+    USING (user_id = (SELECT nullif(current_setting('app.current_user_id', true), '')::uuid))
   `);
 
   await db.execute(sql`DROP POLICY IF EXISTS api_select_api_keys ON api_keys`);
@@ -47,7 +51,7 @@ async function setup() {
     CREATE POLICY "api_select_api_keys" ON api_keys FOR SELECT TO lumen_api
     USING (site_id IN (
       SELECT id FROM sites
-      WHERE user_id = nullif(current_setting('app.current_user_id', true), '')::uuid
+      WHERE user_id = (SELECT nullif(current_setting('app.current_user_id', true), '')::uuid)
     ))
   `);
 
@@ -56,7 +60,7 @@ async function setup() {
     CREATE POLICY "api_select_sessions" ON sessions FOR SELECT TO lumen_api
     USING (site_id IN (
       SELECT id FROM sites
-      WHERE user_id = nullif(current_setting('app.current_user_id', true), '')::uuid
+      WHERE user_id = (SELECT nullif(current_setting('app.current_user_id', true), '')::uuid)
     ))
   `);
 
@@ -114,7 +118,18 @@ async function setup() {
       FOR EACH ROW EXECUTE FUNCTION public.handle_user_update()
   `);
 
-  console.log("✅ RLS setup complete");
+  console.log("Revoking public execute on SECURITY DEFINER functions...");
+  await db.execute(sql`REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM PUBLIC`);
+  await db.execute(sql`REVOKE EXECUTE ON FUNCTION public.handle_user_update() FROM PUBLIC`);
+  await db.execute(sql`GRANT EXECUTE ON FUNCTION public.handle_new_user() TO service_role`);
+  await db.execute(sql`GRANT EXECUTE ON FUNCTION public.handle_user_update() TO service_role`);
+
+  console.log("Creating indexes on foreign key columns...");
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_api_keys_site_id ON api_keys (site_id)`);
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_sessions_site_id ON sessions (site_id)`);
+  await db.execute(sql`CREATE INDEX IF NOT EXISTS idx_sites_user_id ON sites (user_id)`);
+
+  console.log("✅ RLS & performance setup complete");
 }
 
 setup()
