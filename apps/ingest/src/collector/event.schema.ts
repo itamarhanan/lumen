@@ -1,7 +1,14 @@
 import { z } from 'zod';
 
 const PropertyValue: z.ZodType<unknown> = z.lazy(() =>
-  z.union([z.string(), z.number(), z.boolean(), z.null(), z.record(z.string(), PropertyValue), z.array(PropertyValue)])
+  z.union([
+    z.string(),
+    z.number(),
+    z.boolean(),
+    z.null(),
+    z.record(z.string(), PropertyValue),
+    z.array(PropertyValue),
+  ]),
 );
 
 const BaseEvent = z.object({
