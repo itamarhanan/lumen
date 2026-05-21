@@ -8,8 +8,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "check-types": "tsc --noEmit",
-    "lint": "eslint ."
+    "check-types": "tsc --noEmit"
   },
   "keywords": [],
   "author": "",
