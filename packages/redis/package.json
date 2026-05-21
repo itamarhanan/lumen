@@ -1,10 +1,8 @@
 {
-  "name": "@lumen/sdk",
-  "version": "0.0.1",
+  "name": "@lumen/redis",
+  "version": "1.0.0",
   "private": true,
-  "sideEffects": false,
   "type": "module",
-  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -13,7 +11,9 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint ."
   },
-  "dependencies": {},
+  "dependencies": {
+    "ioredis": "^5.10.1"
+  },
   "devDependencies": {
     "@eslint/js": "catalog:",
     "@lumen/config": "workspace:*",
@@ -22,6 +22,5 @@
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
   },
-  "license": "ISC",
   "packageManager": "pnpm@10.28.1"
 }
