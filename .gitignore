@@ -23,6 +23,7 @@ apps/**/out/
 .turbo
 apps/**/build
 apps/**/dist/
+packages/**/dist/
 
 # === TypeScript ===
 apps/**/*.tsbuildinfo

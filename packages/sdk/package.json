@@ -10,12 +10,17 @@
   },
   "scripts": {
     "build": "tsc",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "lint": "eslint ."
   },
   "dependencies": {},
   "devDependencies": {
+    "@eslint/js": "catalog:",
     "@lumen/config": "workspace:*",
-    "typescript": "^5.9.3"
+    "eslint": "catalog:",
+    "globals": "catalog:",
+    "typescript": "catalog:",
+    "typescript-eslint": "catalog:"
   },
   "license": "ISC",
   "packageManager": "pnpm@10.28.1"

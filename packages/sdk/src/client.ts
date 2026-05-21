@@ -11,14 +11,14 @@ function getOrCreateVisitorId(): string {
   try {
     const existing = localStorage.getItem(VISITOR_KEY);
     if (existing) return existing;
-  } catch {}
+  } catch { /* empty */ }
   const id = generateId();
-  try { localStorage.setItem(VISITOR_KEY, id); } catch {}
+  try { localStorage.setItem(VISITOR_KEY, id); } catch { /* empty */ }
   return id;
 }
 
 function persistVisitorId(id: string): void {
-  try { localStorage.setItem(VISITOR_KEY, id); } catch {}
+  try { localStorage.setItem(VISITOR_KEY, id); } catch { /* empty */ }
 }
 
 export function createLumen(config: LumenConfig): LumenClient {

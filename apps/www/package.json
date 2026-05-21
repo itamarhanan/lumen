@@ -38,13 +38,13 @@
     "@lumen/config": "workspace:*",
     "@next/eslint-plugin-next": "^16.2.6",
     "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
+    "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
     "terser": "^5.47.1",
-    "typescript": "^5"
+    "typescript": "catalog:"
   }
 }
