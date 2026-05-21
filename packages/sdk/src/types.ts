@@ -14,7 +14,7 @@ export interface LumenClient {
 
 export type EventProperties = Record<string, unknown>;
 
-export interface BaseEvent {
+interface BaseEvent {
   siteId: string;
   sessionId: string;
   visitorId: string;
