@@ -36,5 +36,3 @@ export const LumenEventSchema = z.discriminatedUnion('type', [
 ]);
 
 export type LumenEvent = z.infer<typeof LumenEventSchema>;
-type PageviewEvent = z.infer<typeof PageviewEventSchema>;
-type CustomEvent = z.infer<typeof CustomEventSchema>;
