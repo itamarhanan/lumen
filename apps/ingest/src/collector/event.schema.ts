@@ -18,13 +18,13 @@ const BaseEvent = z.object({
   timestamp: z.number().int().positive(),
 });
 
-export const PageviewEventSchema = BaseEvent.extend({
+const PageviewEventSchema = BaseEvent.extend({
   type: z.literal('pageview'),
   url: z.url(),
   referrer: z.url().nullish(),
 });
 
-export const CustomEventSchema = BaseEvent.extend({
+const CustomEventSchema = BaseEvent.extend({
   type: z.literal('custom'),
   name: z.string().min(1),
   properties: z.record(z.string(), PropertyValue).optional(),
@@ -36,5 +36,5 @@ export const LumenEventSchema = z.discriminatedUnion('type', [
 ]);
 
 export type LumenEvent = z.infer<typeof LumenEventSchema>;
-export type PageviewEvent = z.infer<typeof PageviewEventSchema>;
-export type CustomEvent = z.infer<typeof CustomEventSchema>;
+type PageviewEvent = z.infer<typeof PageviewEventSchema>;
+type CustomEvent = z.infer<typeof CustomEventSchema>;

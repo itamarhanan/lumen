@@ -1,0 +1,58 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    "apps/www": {
+      "entry": ["src/app/layout.tsx", "src/app/**/page.tsx"],
+      "project": ["src/**/*.{ts,tsx}"],
+      "ignoreDependencies": [
+        "@base-ui/react",
+        "cmdk",
+        "date-fns",
+        "embla-carousel-react",
+        "input-otp",
+        "postcss",
+        "react-day-picker",
+        "react-resizable-panels",
+        "recharts",
+        "shadcn",
+        "sonner",
+        "tailwindcss",
+        "tw-animate-css",
+        "vaul"
+      ]
+    },
+    "apps/ingest": {
+      "entry": ["src/main.ts"],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": [
+        "@nestjs/mapped-types",
+        "@nestjs/testing",
+        "@types/supertest",
+        "supertest",
+        "source-map-support",
+        "ts-loader",
+        "ts-node",
+        "tsconfig-paths"
+      ]
+    },
+    "packages/clickhouse": {
+      "ignoreDependencies": [
+        "@eslint/js",
+        "globals",
+        "typescript-eslint"
+      ]
+    }
+  },
+  "ignore": [
+    "apps/www/src/components/ui/**",
+    "apps/ingest/src/@generated/**",
+    "apps/www/src/hooks/use-mobile.ts",
+    "apps/ingest/src/collector/collector.router.ts",
+    "packages/config/tsconfig.www.json"
+  ],
+  "ignoreDependencies": [
+    "supabase",
+    "@next/eslint-plugin-next",
+    "@eslint/eslintrc"
+  ]
+}
