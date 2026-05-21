@@ -1,0 +1,9 @@
+{
+  "extends": "@lumen/config/base",
+  "compilerOptions": {
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src"]
+}
