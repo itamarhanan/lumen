@@ -1,10 +1,8 @@
 {
-  "name": "@lumen/sdk",
-  "version": "0.0.1",
-  "private": true,
-  "sideEffects": false,
+  "name": "@lumen/clickhouse",
+  "version": "1.0.0",
+  "description": "Typed ClickHouse client wrapper for @lumen",
   "type": "module",
-  "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts"
   },
@@ -13,7 +11,13 @@
     "check-types": "tsc --noEmit",
     "lint": "eslint ."
   },
-  "dependencies": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.28.1",
+  "dependencies": {
+    "@clickhouse/client": "^1.18.5"
+  },
   "devDependencies": {
     "@eslint/js": "catalog:",
     "@lumen/config": "workspace:*",
@@ -21,7 +25,5 @@
     "globals": "catalog:",
     "typescript": "catalog:",
     "typescript-eslint": "catalog:"
-  },
-  "license": "ISC",
-  "packageManager": "pnpm@10.28.1"
+  }
 }

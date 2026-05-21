@@ -44,7 +44,7 @@ async function main() {
         Authorization: `Bearer ${process.env.GH_MODELS_TOKEN}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "openai/gpt-4.1-nano",
         messages: [
           { role: "system", content: prompt },
           { role: "user", content: userMsg },
@@ -71,7 +71,10 @@ async function main() {
 function parseJSON(text) {
   try {
     return JSON.parse(
-      text.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim(),
+      text
+        .replace(/^```(?:json)?\s*/i, "")
+        .replace(/\s*```$/, "")
+        .trim(),
     );
   } catch {
     return [];
