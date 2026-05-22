@@ -3,7 +3,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { LumenEvent } from './event.schema';
 
-export interface RedisEnvelope {
+interface RedisEnvelope {
   raw: LumenEvent;
   receivedAt: number;
   ip?: string;

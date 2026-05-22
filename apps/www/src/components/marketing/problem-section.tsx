@@ -48,7 +48,7 @@ function PainPoint({
 }) {
   return (
     <div className="flex flex-col md:flex-row items-start gap-5 md:gap-10 mx-auto">
-      <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl border border-border bg-card md:size-28">
+      <div className="flex size-20 shrink-0 items-center justify-center rounded-2xl bg-card md:size-28">
         {graphic}
       </div>
       <div>

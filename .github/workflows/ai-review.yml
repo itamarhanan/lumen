@@ -1,0 +1,49 @@
+name: AI Code Review
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate diff
+        run: |
+          git diff origin/${{ github.base_ref }}...HEAD -- . \
+            ':(exclude)pnpm-lock.yaml' \
+            ':(exclude)**/package-lock.json' \
+            > /tmp/pr_diff.txt
+
+      - name: Run AI review
+        env:
+          GH_MODELS_TOKEN: ${{ secrets.GH_MODELS_TOKEN }}
+        run: node .github/scripts/ai-review.mjs > /tmp/review.json
+
+      - name: Post review comments
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comments = JSON.parse(
+              require('fs').readFileSync('/tmp/review.json', 'utf8')
+            );
+            if (!Array.isArray(comments) || comments.length === 0) {
+              console.log('No issues found.');
+              return;
+            }
+            await github.rest.pulls.createReview({
+              ...context.repo,
+              pull_number: context.issue.number,
+              commit_id: context.payload.pull_request.head.sha,
+              event: 'COMMENT',
+              comments,
+            });

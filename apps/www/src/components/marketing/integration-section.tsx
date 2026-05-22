@@ -261,7 +261,7 @@ export function IntegrationSection() {
           </p>
         </div>
 
-        <div className="rounded-3xl border border-border p-8 md:p-12 bg-card">
+        <div className="rounded-3xl p-8 md:p-12 bg-card">
           <div className="flex border-b border-border mb-8">
             {tabs.map((tab) => (
               <button
@@ -297,7 +297,7 @@ export function IntegrationSection() {
           </div>
         </div>
 
-        <div className="mt-10 rounded-3xl border border-border p-8 md:p-12 bg-card/50 text-center">
+        <div className="mt-10 rounded-3xl p-8 md:p-12 bg-card/50 text-center">
           <div className="flex flex-wrap justify-center gap-6">
             {platformIcons.map((platform) => (
               <span key={platform.name} className="text-muted-foreground">

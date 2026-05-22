@@ -23,6 +23,7 @@ apps/**/out/
 .turbo
 apps/**/build
 apps/**/dist/
+packages/**/dist/
 
 # === TypeScript ===
 apps/**/*.tsbuildinfo
@@ -45,3 +46,7 @@ apps/**/.pnpm-debug.log*
 
 # === Clickhouse ===
 clickhouse/*
+
+# === Supabase ===
+supabase/.branches/
+supabase/.temp/

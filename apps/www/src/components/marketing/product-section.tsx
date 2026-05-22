@@ -23,7 +23,7 @@ export function ProductSection() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="md:col-span-2 rounded-2xl border border-border overflow-hidden">
+          <div className="md:col-span-2 rounded-2xl overflow-hidden">
             <DashboardBeauty />
           </div>
 
@@ -60,7 +60,7 @@ function FeatureCard({
   text: string;
 }) {
   return (
-    <div className="flex flex-col rounded-2xl border border-border bg-card p-5 md:p-6 h-full">
+    <div className="flex flex-col rounded-2xl bg-card p-5 md:p-6 h-full">
       <div className="mb-4 flex size-10 items-center justify-center rounded-xl bg-muted md:size-12">
         {glyph}
       </div>
@@ -165,7 +165,7 @@ function DashboardView({ isTracking }: { isTracking: boolean }) {
   return (
     <div>
       <p className="mb-1 text-sm font-semibold text-white">Overview</p>
-      <p className="mb-6 text-xs text-neutral-500">
+      <p className="mb-6 text-xs text-muted-foreground">
         {isTracking
           ? "Real-time data from your active events."
           : "Add your first event to start tracking."}
@@ -175,9 +175,9 @@ function DashboardView({ isTracking }: { isTracking: boolean }) {
         {metrics.map((m) => (
           <div
             key={m.label}
-            className="rounded-xl bg-neutral-100 dark:border dark:border-neutral-800  dark:bg-neutral-900/50 p-3 transition-colors hover:border-primary/50 md:p-4"
+            className="rounded-xl bg-neutral-100 dark:border dark:border-border  dark:bg-card/50 p-3 transition-colors hover:border-primary/50 md:p-4"
           >
-            <p className="mb-2 text-xs uppercase tracking-wider text-neutral-600">
+            <p className="mb-2 text-xs uppercase tracking-wider text-muted-foreground">
               {m.label}
             </p>
             {isTracking ? (
@@ -189,16 +189,16 @@ function DashboardView({ isTracking }: { isTracking: boolean }) {
               </>
             ) : (
               <>
-                <p className="text-2xl font-semibold text-neutral-700">—</p>
-                <p className="mt-1 h-3 w-16 rounded bg-neutral-800/50" />
+                <p className="text-2xl font-semibold text-muted-foreground">—</p>
+                <p className="mt-1 h-3 w-16 rounded bg-muted/50" />
               </>
             )}
           </div>
         ))}
       </div>
 
-      <div className="rounded-xl bg-neutral-100 dark:border dark:border-neutral-800 dark:bg-neutral-900/50 p-4">
-        <p className="mb-4 text-xs uppercase tracking-wider text-neutral-600">
+      <div className="rounded-xl bg-neutral-100 dark:border dark:border-border dark:bg-card/50 p-4">
+        <p className="mb-4 text-xs uppercase tracking-wider text-muted-foreground">
           Page views — last 14 days
         </p>
         {isTracking ? (
@@ -213,7 +213,7 @@ function DashboardView({ isTracking }: { isTracking: boolean }) {
           </div>
         ) : (
           <div className="flex h-20 items-center justify-center">
-            <p className="text-xs text-neutral-700">
+            <p className="text-xs text-muted-foreground">
               No data yet. Add your script to start collecting.
             </p>
           </div>
@@ -244,7 +244,7 @@ function EventsView({
   return (
     <div>
       <p className="mb-1 text-sm font-semibold text-white">Custom events</p>
-      <p className="mb-6 text-xs text-neutral-500">
+      <p className="mb-6 text-xs text-muted-foreground">
         Define the actions that matter to your product.
       </p>
 
@@ -252,7 +252,7 @@ function EventsView({
         {events.map((ev) => (
           <label
             key={ev.name}
-            className="flex cursor-pointer items-center gap-3 rounded-xl border dark:border-neutral-800 dark:bg-neutral-900/50 px-4 py-3 transition-colors hover:border-neutral-700"
+            className="flex cursor-pointer items-center gap-3 rounded-xl border dark:border-border dark:bg-card/50 px-4 py-3 transition-colors hover:border-border"
           >
             <input
               type="checkbox"
@@ -264,12 +264,12 @@ function EventsView({
               <p className="text-xs font-medium text-foreground dark:text-white">
                 {ev.name}
               </p>
-              <p className="text-xs text-neutral-500">{ev.description}</p>
+              <p className="text-xs text-muted-foreground">{ev.description}</p>
             </div>
             <span
               className={`rounded-md px-2 py-0.5 text-xs font-mono uppercase tracking-wider ${
                 ev.disabled
-                  ? "dark:bg-neutral-800  bg-neutral-100 text-neutral-600"
+                  ? "dark:bg-muted  bg-neutral-100 text-muted-foreground"
                   : "bg-primary/10 text-primary"
               }`}
             >
@@ -279,7 +279,7 @@ function EventsView({
         ))}
       </div>
 
-      <button className="mt-4 flex items-center gap-1.5 rounded-xl border border-dashed border-neutral-700 px-4 py-3 text-xs text-neutral-500 transition-colors hover:border-neutral-600 hover:text-neutral-400">
+      <button className="mt-4 flex items-center gap-1.5 rounded-xl border border-dashed border-border px-4 py-3 text-xs text-muted-foreground transition-colors hover:border-border/80 hover:text-muted-foreground">
         <span className="text-base leading-none">+</span>
         Add custom event
       </button>
@@ -309,13 +309,13 @@ function QueriesView() {
   return (
     <div>
       <p className="mb-1 text-sm font-semibold text-white">SQL query editor</p>
-      <p className="mb-6 text-xs text-neutral-500">
+      <p className="mb-6 text-xs text-muted-foreground">
         Ask any question about your data. Plain SQL, always.
       </p>
 
-      <div className="overflow-hidden rounded-xl border border-neutral-800">
-        <div className="flex items-center justify-between border-b border-neutral-800 bg-neutral-900/80 px-4 py-2">
-          <span className="text-xs font-mono text-neutral-600">query.sql</span>
+      <div className="overflow-hidden rounded-xl border border-border">
+        <div className="flex items-center justify-between border-b border-border bg-card/80 px-4 py-2">
+          <span className="text-xs font-mono text-muted-foreground">query.sql</span>
           <button
             onClick={handleRun}
             disabled={running}
@@ -325,9 +325,9 @@ function QueriesView() {
           </button>
         </div>
 
-        <pre className="overflow-x-auto bg-neutral-950 p-4 font-mono text-xs leading-6">
+        <pre className="overflow-x-auto bg-background p-4 font-mono text-xs leading-6">
           <code>
-            <span className="text-neutral-600">
+            <span className="text-muted-foreground">
               -- Which events lead to signup in under 10 minutes?
             </span>
             {"\n"}
@@ -360,9 +360,9 @@ function QueriesView() {
           </code>
         </pre>
 
-        <div className="border-t border-neutral-800 bg-neutral-900/50 p-4">
+        <div className="border-t border-border bg-card/50 p-4">
           {running ? (
-            <p className="mb-3 animate-pulse text-xs font-mono text-neutral-600">
+            <p className="mb-3 animate-pulse text-xs font-mono text-muted-foreground">
               -- running query…
             </p>
           ) : result ? (
@@ -370,7 +370,7 @@ function QueriesView() {
               -- 4 rows returned in {result.time}s
             </p>
           ) : (
-            <p className="mb-3 text-xs font-mono text-neutral-600">
+            <p className="mb-3 text-xs font-mono text-muted-foreground">
               -- 4 rows returned in 0.023s
             </p>
           )}
@@ -379,9 +379,9 @@ function QueriesView() {
             {["page_view", "cta_click", "signup_start"].map((name) => (
               <div
                 key={name}
-                className="rounded-lg border border-neutral-800 bg-neutral-950/50 p-3"
+                className="rounded-lg border border-border bg-card/50 p-3"
               >
-                <p className="mb-1 font-mono text-xs text-neutral-400">
+                <p className="mb-1 font-mono text-xs text-muted-foreground">
                   {name}
                 </p>
                 <p className="font-semibold text-white">

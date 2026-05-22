@@ -34,7 +34,7 @@ export function Hero() {
             className="absolute -top-10 left-0 right-0 h-10 bg-linear-to-b from-background to-transparent pointer-events-none z-10"
             aria-hidden="true"
           />
-          <div className="rounded-xl border border-border overflow-hidden bg-card">
+          <div className="rounded-xl overflow-hidden bg-card">
             <DashboardPreview />
           </div>
         </div>
@@ -77,7 +77,7 @@ function DashboardPreview() {
         <MetricTile label="Events today" value="1.2M" delta="+3.1%" positive />
         <MetricTile label="p95 latency" value="84 ms" delta="-6%" positive />
 
-        <div className="md:col-span-3 rounded-lg border border-border bg-secondary/30 p-4">
+        <div className="md:col-span-3 rounded-lg bg-secondary/30 p-4">
           <div className="flex items-center justify-between mb-4">
             <div>
               <p className="text-xs text-muted-foreground uppercase tracking-wider">
@@ -91,7 +91,7 @@ function DashboardPreview() {
           <SparklineChart />
         </div>
 
-        <div className="md:col-span-2 rounded-lg border border-border bg-secondary/30 p-4">
+        <div className="md:col-span-2 rounded-lg bg-secondary/30 p-4">
           <p className="text-xs text-muted-foreground uppercase tracking-wider mb-4">
             Top events
           </p>
@@ -107,7 +107,7 @@ function DashboardPreview() {
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-secondary/30 p-4 flex flex-col justify-between gap-4">
+        <div className="rounded-lg bg-secondary/30 p-4 flex flex-col justify-between gap-4">
           <div>
             <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
               Data ownership
@@ -141,7 +141,7 @@ function MetricTile({
   positive: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-secondary/30 p-4">
+    <div className="rounded-lg bg-secondary/30 p-4">
       <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">
         {label}
       </p>
