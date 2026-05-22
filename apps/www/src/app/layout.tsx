@@ -28,6 +28,7 @@ export default function RootLayout({
         "font-sans",
         plusJakartaSans.variable,
       )}
+      suppressHydrationWarning
     >
       <ThemeProvider
         attribute="class"
