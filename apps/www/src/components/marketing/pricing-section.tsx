@@ -114,7 +114,7 @@ function PricingCard({
   features,
 }: PricingCardProps) {
   return (
-    <div className="relative rounded-2xl border border-border bg-card p-7 flex flex-col gap-7">
+    <div className="relative rounded-2xl bg-card p-7 flex flex-col gap-7">
       {/* Header */}
       <div>
         <p className="text-xs font-mono uppercase tracking-widest text-muted-foreground mb-4">
