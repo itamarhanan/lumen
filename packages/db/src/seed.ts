@@ -1,7 +1,6 @@
 import { eq } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { nanoid } from "nanoid";
-import postgres from "postgres";
 import { createClient } from "./index";
 import * as schema from "./schema/index";
 
@@ -9,9 +8,17 @@ const CH_URL = process.env.CLICKHOUSE_URL ?? "http://localhost:8123";
 const CH_DB = "lumen";
 
 const PATHS = [
-  "/", "/blog", "/pricing", "/about", "/contact",
-  "/blog/hello-world", "/blog/tips", "/blog/deep-dive",
-  "/products", "/products/1", "/products/2",
+  "/",
+  "/blog",
+  "/pricing",
+  "/about",
+  "/contact",
+  "/blog/hello-world",
+  "/blog/tips",
+  "/blog/deep-dive",
+  "/products",
+  "/products/1",
+  "/products/2",
 ];
 
 async function seedClickhouse(projectId: string): Promise<number> {
@@ -42,18 +49,25 @@ async function seedClickhouse(projectId: string): Promise<number> {
       const sessionIdx = Math.floor(Math.random() * sessions.length);
       const sessionId = sessions[sessionIdx];
 
-      const path = PATHS[Math.floor(Math.random() * PATHS.length)];
+      const path = PATHS[Math.floor(Math.random() * PATHS.length)]!;
       const isPageview = Math.random() < 0.75;
 
       events.push({
         event_type: isPageview ? "pageview" : "custom",
         event_name: isPageview ? "pageview" : "button_click",
-        properties: JSON.stringify({ url: path, title: path === "/" ? "Home" : path.replace("/", "") }),
+        properties: JSON.stringify({
+          url: path,
+          title: path === "/" ? "Home" : path.replace("/", ""),
+        }),
         actor_id: crypto.randomUUID(),
         session_id: sessionId,
         project_id: projectId,
         source: "web",
-        timestamp: ts.toISOString().replace("T", " ").replace("Z", "").slice(0, 23),
+        timestamp: ts
+          .toISOString()
+          .replace("T", " ")
+          .replace("Z", "")
+          .slice(0, 23),
       });
     }
   }
@@ -87,15 +101,17 @@ async function seed() {
   let userId: string;
 
   if (existingUsers.length > 0) {
-    userId = existingUsers[0].id;
-    console.log(`Found user: ${existingUsers[0].email} (${userId})`);
+    const user = existingUsers[0]!;
+    userId = user.id;
+    console.log(`Found user: ${user.email} (${userId})`);
   } else {
     console.log("No user found in public.users.");
     console.log("Please log in via OAuth first, then re-run seed.");
     return;
   }
 
-  const existingSites = await db.select({ id: schema.sites.id })
+  const existingSites = await db
+    .select({ id: schema.sites.id })
     .from(schema.sites)
     .where(eq(schema.sites.userId, userId))
     .limit(1);
@@ -105,7 +121,10 @@ async function seed() {
 
   if (existingSites.length > 0) {
     console.log("Sites already exist, skipping.");
-    const allSites = await db.select().from(schema.sites).where(eq(schema.sites.userId, userId));
+    const allSites = await db
+      .select()
+      .from(schema.sites)
+      .where(eq(schema.sites.userId, userId));
     const siteIds = allSites.map((s) => s.id);
 
     console.log("Seeding ClickHouse for existing sites...");
@@ -148,14 +167,17 @@ async function seed() {
 
   if (existingSites.length === 0) {
     console.log("Seeding ClickHouse...");
-    const allSites = await db.select().from(schema.sites).where(eq(schema.sites.userId, userId));
+    const allSites = await db
+      .select()
+      .from(schema.sites)
+      .where(eq(schema.sites.userId, userId));
     for (const site of allSites) {
       const n = await seedClickhouse(site.id);
       console.log(`  Inserted ${n} events for "${site.name}"`);
     }
   }
 
-  close();
+  await close();
   console.log("Done.");
 }
 
