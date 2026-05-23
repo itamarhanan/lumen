@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { Sidebar } from "./_components/sidebar";
-import { TopBar } from "./_components/top-bar";
+import { redirect } from "next/navigation";
+import { Sidebar } from "@/components/dashboard/sidebar";
+import { TopBar } from "@/components/dashboard/topbar";
 
 export default async function DashboardLayout({
   children,
@@ -12,12 +13,18 @@ export default async function DashboardLayout({
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) redirect("/login");
+
   return (
-    <div className="flex h-screen">
-      <Sidebar />
-      <div className="flex flex-1 flex-col">
-        <TopBar user={user} />
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <div className="flex flex-col h-screen overflow-hidden bg-background">
+      <TopBar />
+      <div className="flex flex-1 min-h-0">
+        <div className="hidden lg:flex shrink-0">
+          <Sidebar />
+        </div>
+        <div className="flex-1 overflow-y-auto h-full">
+          {children}
+        </div>
       </div>
     </div>
   );
