@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { createClient } from "./index.js";
+import { createClient } from "./index";
 
 const { db, close } = createClient("admin");
 

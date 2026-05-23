@@ -1,8 +1,8 @@
 import { eq } from "drizzle-orm";
 import { createHash } from "node:crypto";
 import { nanoid } from "nanoid";
-import { createClient } from "./index.js";
-import * as schema from "./schema/index.js";
+import { createClient } from "./index";
+import * as schema from "./schema/index";
 
 const SEED_USER_ID = "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11";
 
