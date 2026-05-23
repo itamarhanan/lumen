@@ -1,150 +1,150 @@
 "use client";
 
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
-import { Eye, MousePointerClick, TrendingUp, Users } from "lucide-react";
+import { TimeseriesChart } from "@/components/dashboard/timeseries-chart";
+import { TopSources } from "@/components/dashboard/top-sources";
+import { TopPages } from "@/components/dashboard/top-pages";
+import { LiveIndicator } from "@/components/dashboard/live-indicator";
+import { StatCard } from "@/components/dashboard/stat-card";
+import { QuickActions } from "@/components/dashboard/quick-actions";
+import { useMemo } from "react";
+import { TrendingUp, TrendingDown } from "lucide-react";
+import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
-import { StatCard } from "./_components/stat-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useDashboardStore } from "@/lib/store/dashboard";
 
+import { subDays, format } from "date-fns";
 
-const now = new Date();
-const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+export default function OverviewPage() {
+  const storeProjectId = useDashboardStore((s) => s.selectedProjectId);
+  const storeDateRange = useDashboardStore((s) => s.dateRange);
 
-function toISODate(d: Date) {
-  return d.toISOString().slice(0, 10);
-}
+  const { data: sites } = trpc.sites.list.useQuery();
+  const firstSite = sites?.[0];
 
-export default function DashboardPage() {
-  const { data: sites, isLoading: sitesLoading } = trpc.sites.list.useQuery();
+  const projectId = storeProjectId ?? firstSite?.id ?? "";
 
-  const projectId = sites?.[0]?.id;
+  const from = useMemo(
+    () => format(subDays(new Date(), storeDateRange.days), "yyyy-MM-dd"),
+    [storeDateRange.days],
+  );
+  const to = useMemo(() => new Date().toISOString(), []);
+
+  const enabled = !!projectId;
 
   const overview = trpc.analytics.overview.useQuery(
-    { projectId: projectId!, from: toISODate(sevenDaysAgo), to: toISODate(now) },
-    { enabled: !!projectId },
+    { projectId, from, to },
+    { enabled },
   );
-
+  const granularity = storeDateRange.days <= 1 ? "hour" : "day";
   const timeseries = trpc.analytics.timeseries.useQuery(
-    {
-      projectId: projectId!,
-      from: toISODate(sevenDaysAgo),
-      to: toISODate(now),
-      granularity: "day",
-    },
-    { enabled: !!projectId },
+    { projectId, from, to, granularity },
+    { enabled },
+  );
+  const liveCount = trpc.analytics.liveCount.useQuery(
+    { projectId },
+    { enabled, refetchInterval: 30_000 },
+  );
+  const topPages = trpc.analytics.topPages.useQuery(
+    { projectId, from, to },
+    { enabled },
+  );
+  const topSources = trpc.analytics.topSources.useQuery(
+    { projectId, from, to },
+    { enabled },
   );
 
-  if (sitesLoading) {
-    return (
-      <div className="flex items-center justify-center py-16">
-        <p className="text-muted-foreground">Loading...</p>
-      </div>
-    );
-  }
-
-  if (!sites || sites.length === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center gap-2 py-16">
-        <p className="text-lg font-medium">No sites yet</p>
-        <p className="text-sm text-muted-foreground">
-          Create your first site to start tracking analytics.
-        </p>
-      </div>
-    );
-  }
-
-  const stats = overview.data;
+  const ov = overview.data;
+  const ts = timeseries.data ?? [];
+  const pv = ov?.pageviews ?? 0;
+  const live = liveCount.data ?? 0;
+  const pageviewsPos = (ov?.pageviewsDelta ?? 0) >= 0;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold">Overview</h1>
-        <p className="text-sm text-muted-foreground">
-          Last 7 days &middot; {toISODate(sevenDaysAgo)} &ndash;{" "}
-          {toISODate(now)}
-        </p>
+    <div className="flex flex-col w-full">
+      <div className="flex items-center justify-between gap-4 px-4 pt-5 pb-3 sm:px-6 border-b border-border dark:border-[oklch(0.15_0_0)]">
+        <div className="min-w-0">
+          <h1 className="text-2xl font-light tracking-tight text-foreground leading-none">
+            Overview
+          </h1>
+          <p className="mt-1 text-xs text-foreground/30 truncate">
+            Analytics dashboard &middot; {storeDateRange.label}
+          </p>
+        </div>
+        <LiveIndicator count={live} />
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard
-          label="Pageviews"
-          value={stats?.pageviews ?? 0}
-          icon={Eye}
-        />
-        <StatCard
-          label="Visitors"
-          value={stats?.visitors ?? 0}
-          icon={Users}
-        />
-        <StatCard
-          label="Events"
-          value={stats?.totalEvents ?? 0}
-          icon={MousePointerClick}
-        />
-        <StatCard
-          label="Bounce Rate"
-          value={stats ? `${stats.bounceRate}%` : "0%"}
-          icon={TrendingUp}
-        />
-      </div>
+      <div className="flex flex-col gap-6 px-4 py-6 sm:px-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            {overview.isLoading ? (
+              <div className="h-[clamp(2rem,4vw,3.5rem)] w-48 animate-pulse rounded-xl bg-white/5" />
+            ) : (
+              <span
+                className="font-light tracking-tight text-foreground leading-none"
+                style={{ fontSize: "clamp(2rem, 4vw, 3.5rem)" }}
+              >
+                {pv.toLocaleString()}
+              </span>
+            )}
+            <p className="mt-1 text-sm text-foreground/40">
+              Total pageviews ({storeDateRange.label.toLowerCase()})
+              {ov?.pageviewsDelta != null && (
+                <span
+                  className={cn(
+                    "ml-1.5 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
+                    pageviewsPos
+                      ? "bg-primary/10 text-primary"
+                      : "bg-destructive/15 text-destructive",
+                  )}
+                >
+                  {pageviewsPos ? (
+                    <TrendingUp size={9} />
+                  ) : (
+                    <TrendingDown size={9} />
+                  )}
+                  {pageviewsPos ? "+" : ""}
+                  {ov.pageviewsDelta}%
+                </span>
+              )}
+            </p>
+          </div>
+          <QuickActions />
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Pageviews</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {timeseries.data && timeseries.data.length > 0 ? (
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart data={timeseries.data}>
-                  <defs>
-                    <linearGradient id="pageviewGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.2} />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
-                  <XAxis
-                    dataKey="date"
-                    tickLine={false}
-                    axisLine={false}
-                    className="text-xs text-muted-foreground"
-                  />
-                  <YAxis
-                    tickLine={false}
-                    axisLine={false}
-                    className="text-xs text-muted-foreground"
-                  />
-                  <Tooltip />
-                  <Area
-                    type="monotone"
-                    dataKey="pageviews"
-                    stroke="hsl(var(--primary))"
-                    fill="url(#pageviewGrad)"
-                    strokeWidth={2}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-          ) : timeseries.isLoading ? (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              Loading...
-            </p>
-          ) : (
-            <p className="py-8 text-center text-sm text-muted-foreground">
-              No data yet
-            </p>
-          )}
-        </CardContent>
-      </Card>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <StatCard
+            label="Unique visitors"
+            value={ov?.visitors.toLocaleString() ?? "—"}
+            delta={ov?.visitorsDelta}
+            variant="gold"
+            loading={overview.isLoading}
+          />
+          <StatCard
+            label="Sessions"
+            value={ov?.sessions.toLocaleString() ?? "—"}
+            delta={ov?.sessionsDelta}
+            variant="dim"
+            loading={overview.isLoading}
+          />
+          <StatCard
+            label="Bounce rate"
+            value={ov ? `${ov.bounceRate}%` : "—"}
+            delta={ov?.bounceRateDelta}
+            variant="white"
+            loading={overview.isLoading}
+          />
+        </div>
+
+        <TimeseriesChart data={ts} loading={timeseries.isLoading} />
+
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <TopPages pages={topPages.data ?? []} loading={topPages.isLoading} />
+          <TopSources
+            sources={topSources.data ?? []}
+            loading={topSources.isLoading}
+          />
+        </div>
+      </div>
     </div>
   );
 }
