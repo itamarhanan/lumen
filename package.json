@@ -2,7 +2,6 @@
   "name": "lumen",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
   "scripts": {
     "dev": "./dev.sh",
     "lint": "turbo lint",
