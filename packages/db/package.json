@@ -9,11 +9,11 @@
     "./as-user": "./src/as-user.ts"
   },
   "scripts": {
-    "db:generate": "drizzle-kit generate",
-    "db:push": "drizzle-kit push",
-    "db:migrate": "drizzle-kit migrate",
-    "db:seed": "DATABASE_URL=postgresql://postgres:postgres@127.0.0.1:54322/postgres npx tsx src/seed.ts",
-    "db:setup": "tsx src/setup-roles.ts",
+    "db:generate": "dotenv -e ../../.env -- drizzle-kit generate",
+    "db:push": "dotenv -e ../../.env -- drizzle-kit push",
+    "db:migrate": "dotenv -e ../../.env -- drizzle-kit migrate",
+    "db:seed": "dotenv -e ../../.env -- tsx src/seed.ts",
+    "db:setup": "dotenv -e ../../.env -- tsx src/setup-roles.ts",
     "check-types": "tsc --noEmit",
     "lint": "eslint ."
   },
@@ -26,6 +26,7 @@
     "@eslint/js": "catalog:",
     "@lumen/config": "workspace:*",
     "@types/node": "^22",
+    "dotenv-cli": "^11.0.0",
     "drizzle-kit": "^0.31.10",
     "eslint": "catalog:",
     "globals": "catalog:",
