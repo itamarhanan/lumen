@@ -96,7 +96,6 @@ export function Nav() {
         className="pointer-events-auto w-full max-w-3xl rounded-2xl border border-border/60 bg-background/85 px-2 py-3 backdrop-blur-xl md:px-5 md:py-2.5"
         role="banner"
       >
-        {/* Mobile: logo + hamburger */}
         <div className="flex items-center justify-between md:hidden">
           <LogoLink />
           <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
@@ -130,7 +129,6 @@ export function Nav() {
           </Sheet>
         </div>
 
-        {/* Desktop: single row */}
         <div className="hidden md:flex md:items-center md:gap-2">
           <LogoLink />
           <nav

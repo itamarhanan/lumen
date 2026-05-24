@@ -1,4 +1,4 @@
-export { users } from "./users.js";
-export { sites } from "./sites.js";
-export { apiKeys } from "./api-keys.js";
-export { sessions } from "./sessions.js";
+export { users } from "./users";
+export { sites } from "./sites";
+export { apiKeys } from "./api-keys";
+export { sessions } from "./sessions";

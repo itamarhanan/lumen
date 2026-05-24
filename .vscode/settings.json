@@ -8,7 +8,8 @@
     "ci",
     "config",
     "packages/config",
-    "ingest"
+    "ingest",
+    "packages/db"
   ],
   "js/ts.tsdk.path": "node_modules/typescript/lib"
 }
