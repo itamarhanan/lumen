@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export interface DateRange {
+interface DateRange {
   label: string;
   days: number;
 }
