@@ -22,7 +22,7 @@ export interface ClickHouseEvent {
 
 export interface ClickHouseClient {
   insert(table: string, rows: object[]): Promise<void>;
-  query<T>(sql: string): Promise<T[]>;
+  query<T>(sql: string, params?: Record<string, unknown>): Promise<T[]>;
   close(): Promise<void>;
 }
 
@@ -45,8 +45,15 @@ export function createClient(config?: ClickHouseConfig): ClickHouseClient {
     await client.insert({ table, values: rows, format: "JSONEachRow" });
   }
 
-  async function query<T>(sql: string): Promise<T[]> {
-    const result = await client.query({ query: sql, format: "JSONEachRow" });
+  async function query<T>(
+    sql: string,
+    params?: Record<string, unknown>,
+  ): Promise<T[]> {
+    const result = await client.query({
+      query: sql,
+      format: "JSONEachRow",
+      query_params: params,
+    });
     return await result.json();
   }
 

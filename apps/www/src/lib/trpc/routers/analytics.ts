@@ -4,12 +4,8 @@ import { authedProcedure, t } from "../init";
 
 const ch = createClient({ database: "lumen" });
 
-function escape(s: string) {
-  return s.replace(/'/g, "\\'");
-}
-
-function chDate(s: string) {
-  return s.replace("T", " ").replace("Z", "").slice(0, 23);
+function toChDate(iso: string): string {
+  return iso.replace("T", " ").replace("Z", "").slice(0, 23);
 }
 
 async function fetchOverviewMetrics(
@@ -29,9 +25,10 @@ async function fetchOverviewMetrics(
        uniqExact(session_id)                                   AS sessions,
        uniqExactIf(session_id, event_type = 'pageview')        AS single_page_sessions
      FROM lumen.events
-     WHERE project_id = '${escape(projectId)}'
-       AND timestamp >= '${chDate(from)}'
-       AND timestamp <= '${chDate(to)}'`,
+     WHERE project_id = {project_id: String}
+       AND timestamp >= {from: String}
+       AND timestamp <= {to: String}`,
+    { project_id: projectId, from: toChDate(from), to: toChDate(to) },
   );
 
   const r = rows[0] ?? {
@@ -113,11 +110,12 @@ export const analyticsRouter = t.router({
            countIf(event_type = 'pageview')    AS pageviews,
            uniqExact(session_id)               AS visitors
          FROM lumen.events
-         WHERE project_id = '${escape(input.projectId)}'
-           AND timestamp >= '${chDate(input.from)}'
-           AND timestamp <= '${chDate(input.to)}'
+         WHERE project_id = {project_id: String}
+           AND timestamp >= {from: String}
+           AND timestamp <= {to: String}
          GROUP BY date
          ORDER BY date ASC`,
+        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
       );
 
       return rows.map((r) => ({
@@ -144,13 +142,14 @@ export const analyticsRouter = t.router({
            JSONExtractString(properties, 'url') AS path,
            count()                               AS pageviews
          FROM lumen.events
-         WHERE project_id = '${escape(input.projectId)}'
+         WHERE project_id = {project_id: String}
            AND event_type = 'pageview'
-           AND timestamp >= '${chDate(input.from)}'
-           AND timestamp <= '${chDate(input.to)}'
+           AND timestamp >= {from: String}
+           AND timestamp <= {to: String}
          GROUP BY path
          ORDER BY pageviews DESC
          LIMIT 10`,
+        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
       );
 
       return rows.map((r) => ({
@@ -182,12 +181,13 @@ export const analyticsRouter = t.router({
            )               AS name,
            uniqExact(session_id) AS visitors
          FROM lumen.events
-         WHERE project_id = '${escape(input.projectId)}'
-           AND timestamp >= '${chDate(input.from)}'
-           AND timestamp <= '${chDate(input.to)}'
+         WHERE project_id = {project_id: String}
+           AND timestamp >= {from: String}
+           AND timestamp <= {to: String}
          GROUP BY name
          ORDER BY visitors DESC
          LIMIT 10`,
+        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
       );
 
       const total = rows.reduce((s, r) => s + Number(r.visitors), 0);
@@ -201,13 +201,13 @@ export const analyticsRouter = t.router({
   liveCount: authedProcedure
     .input(z.object({ projectId: z.string() }))
     .query(async ({ input }) => {
-      // 5-min activity window, no Redis dependency from tRPC layer
-      const from = chDate(new Date(Date.now() - 5 * 60 * 1000).toISOString());
+      const from = toChDate(new Date(Date.now() - 5 * 60 * 1000).toISOString());
       const rows = await ch.query<{ count: string }>(
         `SELECT uniqExact(session_id) AS count
          FROM lumen.events
-         WHERE project_id = '${escape(input.projectId)}'
-           AND timestamp >= '${from}'`,
+         WHERE project_id = {project_id: String}
+           AND timestamp >= {from: String}`,
+        { project_id: input.projectId, from },
       );
       return Number(rows[0]?.count ?? 0);
     }),
