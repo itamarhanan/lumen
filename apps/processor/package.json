@@ -17,6 +17,7 @@
     "@lumen/redis": "workspace:*",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "geoip-lite": "^2.0.2",
     "ua-parser-js": "^2.0.3"
   },
   "devDependencies": {
