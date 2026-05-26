@@ -488,6 +488,7 @@ export default function EventsPage() {
           onRetry={() => eventTypes.refetch()}
           selectedEventName={selectedEventName}
           onSelect={handleEventTypeSelect}
+          projectId={projectId}
         />
 
         <EventsActivityChart

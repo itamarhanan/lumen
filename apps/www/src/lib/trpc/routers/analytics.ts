@@ -1,6 +1,6 @@
 import { createClient } from "@lumen/clickhouse";
 import { createClient as createDbClient } from "@lumen/db";
-import { sessions } from "@lumen/db/schema";
+import { sessions, eventDefinitions } from "@lumen/db/schema";
 import { eq, and, inArray } from "drizzle-orm";
 import { z } from "zod";
 import { authedProcedure, t } from "../init";
@@ -114,6 +114,46 @@ async function fetchOverviewMetrics(
     sessions,
     bounceRate,
   };
+}
+
+function mergeSchemas(
+  defined: {
+    description: string | null;
+    color: string | null;
+    propertySchema: Record<string, { type: string; description?: string }> | null;
+  } | null,
+  discovered: Array<{ key: string; type: string }>,
+): Array<{
+  key: string;
+  type: string;
+  description?: string;
+  defined?: boolean;
+  noDataYet?: boolean;
+}> {
+  const definedKeys = defined?.propertySchema ?? {};
+  const discoveredMap = new Map(discovered.map((d) => [d.key, d]));
+  const allKeys = new Set([...Object.keys(definedKeys), ...discoveredMap.keys()]);
+
+  return [...allKeys].map((key) => {
+    const def = definedKeys[key];
+    const disc = discoveredMap.get(key);
+
+    if (def) {
+      return {
+        key,
+        type: def.type,
+        description: def.description,
+        defined: true,
+        noDataYet: disc ? undefined : true,
+      };
+    }
+
+    return {
+      key,
+      type: disc!.type,
+      defined: false,
+    };
+  });
 }
 
 export const analyticsRouter = t.router({
@@ -922,9 +962,20 @@ export const analyticsRouter = t.router({
         );
       }
 
-      const [currRows, prevRows] = await Promise.all([
+      const [currRows, prevRows, defRows] = await Promise.all([
         fetchTypes(input.from, input.to),
         fetchTypes(prevFrom, prevTo),
+        (async () => {
+          const pg = createDbClient("api");
+          try {
+            return await pg.db
+              .select()
+              .from(eventDefinitions)
+              .where(eq(eventDefinitions.siteId, input.projectId));
+          } finally {
+            pg.close();
+          }
+        })(),
       ]);
 
       const prevMap = new Map(
@@ -932,6 +983,7 @@ export const analyticsRouter = t.router({
       );
 
       const schemaMap = await discoverSchema(ch, input.projectId, input.from, input.to);
+      const defMap = new Map(defRows.map((d) => [d.eventName, d]));
 
       const totalVolume = currRows.reduce(
         (sum, r) => sum + Number(r.volume),
@@ -952,13 +1004,20 @@ export const analyticsRouter = t.router({
                   ).toFixed(1),
                 );
 
+          const def = defMap.get(r.event_name) ?? null;
+          const discovered = schemaMap.get(r.event_name) ?? [];
+          const merged = mergeSchemas(def, discovered);
+
           return {
             name: r.event_name,
             volume: Number(r.volume),
             users: Number(r.users),
             trend,
             lastSeen: r.last_seen,
-            properties: schemaMap.get(r.event_name) ?? [],
+            properties: merged,
+            definition: def
+              ? { description: def.description, color: def.color }
+              : null,
           };
         }),
       };
