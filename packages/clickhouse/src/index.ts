@@ -12,7 +12,7 @@ export interface ClickHouseEvent {
   event_type: string;
   event_name: string;
   properties: string;
-  actor_id: string;
+  person_id: string;
   session_id: string;
   project_id: string;
   source: string;
