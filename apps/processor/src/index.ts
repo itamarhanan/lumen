@@ -35,10 +35,11 @@ const PROCESSOR_PORT = parseInt(requireEnv("PROCESSOR_PORT"), 10);
 
 interface RedisEnvelope {
   raw: {
-    type: "pageview" | "custom";
+    type: "pageview" | "custom" | "identify";
     siteId: string;
     sessionId: string;
     visitorId: string;
+    personId?: string;
     timestamp: number;
     url?: string;
     referrer?: string;
@@ -125,7 +126,7 @@ function toRow(envelope: RedisEnvelope): PendingEntry["row"] {
     event_type: raw.type,
     event_name: raw.type === "pageview" ? "pageview" : (raw.name ?? "custom"),
     properties: JSON.stringify(properties),
-    person_id: raw.visitorId,
+    person_id: raw.personId ?? raw.visitorId,
     session_id: raw.sessionId,
     project_id: raw.siteId,
     source: "web",
@@ -134,6 +135,31 @@ function toRow(envelope: RedisEnvelope): PendingEntry["row"] {
       .slice(0, 23)
       .replace("T", " "),
   };
+}
+
+async function handleIdentifyEvent(envelope: RedisEnvelope) {
+  const { raw } = envelope;
+
+  const now = new Date(raw.timestamp)
+    .toISOString()
+    .slice(0, 23)
+    .replace("T", " ");
+
+  const profileRow = {
+    person_id: raw.personId ?? raw.visitorId,
+    project_id: raw.siteId,
+    is_identified: 1,
+    properties: JSON.stringify(raw.properties ?? {}),
+    first_seen_at: now,
+    updated_at: now,
+  };
+
+  try {
+    await clickhouse.insert(`${CLICKHOUSE_DB}.person_profiles`, [profileRow]);
+  } catch (err) {
+    console.error("Failed to upsert person profile:", err);
+    throw err;
+  }
 }
 
 async function flush() {
@@ -248,12 +274,17 @@ async function main() {
       const envelope = JSON.parse(
         entry.fields["data"] ?? "{}",
       ) as RedisEnvelope;
-      pending.push({
-        id: entry.id,
-        retries: 0,
-        envelope,
-        row: toRow(envelope),
-      });
+      if (envelope.raw.type === "identify") {
+        await handleIdentifyEvent(envelope);
+        await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
+      } else {
+        pending.push({
+          id: entry.id,
+          retries: 0,
+          envelope,
+          row: toRow(envelope),
+        });
+      }
     } catch {
       await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
     }
@@ -292,12 +323,17 @@ async function main() {
           const envelope = JSON.parse(
             entry.fields["data"] ?? "{}",
           ) as RedisEnvelope;
-          pending.push({
-            id: entry.id,
-            retries: 0,
-            envelope,
-            row: toRow(envelope),
-          });
+          if (envelope.raw.type === "identify") {
+            await handleIdentifyEvent(envelope);
+            await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
+          } else {
+            pending.push({
+              id: entry.id,
+              retries: 0,
+              envelope,
+              row: toRow(envelope),
+            });
+          }
         } catch {
           await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
         }
