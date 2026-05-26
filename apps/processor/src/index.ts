@@ -58,7 +58,7 @@ interface PendingEntry {
     event_type: string;
     event_name: string;
     properties: string;
-    actor_id: string;
+    person_id: string;
     session_id: string;
     project_id: string;
     source: string;
@@ -125,7 +125,7 @@ function toRow(envelope: RedisEnvelope): PendingEntry["row"] {
     event_type: raw.type,
     event_name: raw.type === "pageview" ? "pageview" : (raw.name ?? "custom"),
     properties: JSON.stringify(properties),
-    actor_id: raw.visitorId,
+    person_id: raw.visitorId,
     session_id: raw.sessionId,
     project_id: raw.siteId,
     source: "web",
