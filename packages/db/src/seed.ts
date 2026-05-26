@@ -21,9 +21,96 @@ const PATHS = [
   "/products/2",
 ];
 
+const CUSTOM_EVENT_NAMES = [
+  "button_click",
+  "signup",
+  "purchase",
+  "feature_used",
+];
+
+const EVENT_SCHEMAS = [
+  {
+    eventName: "button_click",
+    description: "Tracks button clicks across the site",
+    propertiesSchema: {
+      button_id: { type: "string" as const, required: true, description: "DOM element ID" },
+      page: { type: "string" as const, required: true, description: "Page URL" },
+      label: { type: "string" as const, required: false, description: "Button label text" },
+    },
+    enforceStrict: false,
+  },
+  {
+    eventName: "signup",
+    description: "User signup event",
+    propertiesSchema: {
+      method: { type: "string" as const, required: true, description: "Signup method (email, google, github)" },
+      plan: { type: "string" as const, required: false, description: "Selected plan tier" },
+      referrer: { type: "string" as const, required: false, description: "Referral source" },
+    },
+    enforceStrict: true,
+  },
+  {
+    eventName: "purchase",
+    description: "Product purchase event",
+    propertiesSchema: {
+      product_id: { type: "string" as const, required: true, description: "Purchased product ID" },
+      amount: { type: "number" as const, required: true, description: "Purchase amount in cents" },
+      currency: { type: "string" as const, required: true, description: "Currency code" },
+      quantity: { type: "number" as const, required: false, description: "Item quantity" },
+    },
+    enforceStrict: false,
+  },
+  {
+    eventName: "feature_used",
+    description: "Feature usage event",
+    propertiesSchema: {
+      feature: { type: "string" as const, required: true, description: "Feature name" },
+      component: { type: "string" as const, required: false, description: "UI component" },
+      metadata: {
+        type: "object" as const,
+        required: false,
+        description: "Additional context",
+        properties: {
+          source: { type: "string" as const, description: "Navigation source" },
+          version: { type: "string" as const, description: "Feature version" },
+        },
+      },
+    },
+    enforceStrict: false,
+  },
+];
+
+const IDENTIFIED_PERSONS = [
+  { id: crypto.randomUUID(), name: "Alice Johnson", email: "alice@example.com", plan: "pro" },
+  { id: crypto.randomUUID(), name: "Bob Smith", email: "bob@example.com", plan: "enterprise" },
+  { id: crypto.randomUUID(), name: "Carol Davis", email: "carol@example.com", plan: "free" },
+  { id: crypto.randomUUID(), name: "David Wilson", email: "david@example.com", plan: "pro" },
+  { id: crypto.randomUUID(), name: "Eve Martin", email: "eve@example.com", plan: "enterprise" },
+];
+
+function chNow(ts: Date): string {
+  return ts.toISOString().replace("T", " ").replace("Z", "").slice(0, 23);
+}
+
+async function insertCH(body: string): Promise<void> {
+  const res = await fetch(
+    `${CH_URL}/?query=INSERT INTO ${CH_DB}.events FORMAT JSONEachRow`,
+    { method: "POST", body, headers: { "Content-Type": "text/plain" } },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`ClickHouse insert failed: ${text}`);
+  }
+}
+
 async function seedClickhouse(projectId: string): Promise<number> {
   const events: object[] = [];
   const now = new Date();
+
+  const personPool = [
+    ...IDENTIFIED_PERSONS.map((p) => p.id),
+    ...Array.from({ length: 15 }, () => crypto.randomUUID()),
+  ];
 
   for (let day = 29; day >= 0; day--) {
     const date = new Date(now);
@@ -50,25 +137,52 @@ async function seedClickhouse(projectId: string): Promise<number> {
       const sessionId = sessions[sessionIdx];
 
       const path = PATHS[Math.floor(Math.random() * PATHS.length)]!;
-      const isPageview = Math.random() < 0.75;
+      const isPageview = Math.random() < 0.65;
+      const personId = personPool[Math.floor(Math.random() * personPool.length)]!;
 
-      events.push({
-        event_type: isPageview ? "pageview" : "custom",
-        event_name: isPageview ? "pageview" : "button_click",
-        properties: JSON.stringify({
-          url: path,
-          title: path === "/" ? "Home" : path.replace("/", ""),
-        }),
-        person_id: crypto.randomUUID(),
-        session_id: sessionId,
-        project_id: projectId,
-        source: "web",
-        timestamp: ts
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", "")
-          .slice(0, 23),
-      });
+      if (isPageview) {
+        events.push({
+          event_type: "pageview",
+          event_name: "pageview",
+          properties: JSON.stringify({ url: path, title: path === "/" ? "Home" : path.replace("/", "") }),
+          person_id: personId,
+          session_id: sessionId,
+          project_id: projectId,
+          source: "web",
+          timestamp: chNow(ts),
+        });
+      } else {
+        const customName = CUSTOM_EVENT_NAMES[Math.floor(Math.random() * CUSTOM_EVENT_NAMES.length)]!;
+        let props: Record<string, unknown>;
+
+        switch (customName) {
+          case "button_click":
+            props = { button_id: `btn-${Math.floor(Math.random() * 10)}`, page: path, label: "Click me" };
+            break;
+          case "signup":
+            props = { method: ["email", "google", "github"][Math.floor(Math.random() * 3)]!, plan: ["free", "pro", "enterprise"][Math.floor(Math.random() * 3)]! };
+            break;
+          case "purchase":
+            props = { product_id: `prod-${Math.floor(Math.random() * 5)}`, amount: Math.floor(Math.random() * 5000) + 999, currency: "USD", quantity: Math.floor(Math.random() * 3) + 1 };
+            break;
+          case "feature_used":
+            props = { feature: ["search", "dashboard", "export", "api"][Math.floor(Math.random() * 4)]!, component: "MainPanel", metadata: { source: "sidebar", version: "1.0" } };
+            break;
+          default:
+            props = {};
+        }
+
+        events.push({
+          event_type: "custom",
+          event_name: customName,
+          properties: JSON.stringify(props),
+          person_id: personId,
+          session_id: sessionId,
+          project_id: projectId,
+          source: "web",
+          timestamp: chNow(ts),
+        });
+      }
     }
   }
 
@@ -76,22 +190,56 @@ async function seedClickhouse(projectId: string): Promise<number> {
   const batchSize = 1000;
   for (let i = 0; i < events.length; i += batchSize) {
     const batch = events.slice(i, i + batchSize);
-    const body = batch.map((e) => JSON.stringify(e)).join("\n");
-
-    const res = await fetch(
-      `${CH_URL}/?query=INSERT INTO ${CH_DB}.events FORMAT JSONEachRow`,
-      { method: "POST", body, headers: { "Content-Type": "text/plain" } },
-    );
-
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`ClickHouse insert failed at batch ${i}: ${text}`);
-    }
-
+    await insertCH(batch.map((e) => JSON.stringify(e)).join("\n"));
     inserted += batch.length;
   }
 
   return inserted;
+}
+
+async function seedPersonProfiles(projectId: string): Promise<void> {
+  const now = chNow(new Date());
+  const profiles = IDENTIFIED_PERSONS.map((p) => ({
+    person_id: p.id,
+    project_id: projectId,
+    is_identified: 1,
+    properties: JSON.stringify({ name: p.name, email: p.email, plan: p.plan }),
+    first_seen_at: now,
+    updated_at: now,
+  }));
+
+  const res = await fetch(
+    `${CH_URL}/?query=INSERT INTO ${CH_DB}.person_profiles FORMAT JSONEachRow`,
+    { method: "POST", body: profiles.map((p) => JSON.stringify(p)).join("\n"), headers: { "Content-Type": "text/plain" } },
+  );
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`ClickHouse person_profiles insert failed: ${text}`);
+  }
+  console.log(`  Inserted ${profiles.length} person profiles`);
+}
+
+async function seedEventSchemas(siteId: string): Promise<void> {
+  const { db, close } = createClient("admin");
+  try {
+    for (const es of EVENT_SCHEMAS) {
+      const existing = await db.query.eventSchemas.findFirst({
+        where: (eventSchemas, { eq, and }) =>
+          and(eq(eventSchemas.siteId, siteId), eq(eventSchemas.eventName, es.eventName)),
+      });
+      if (existing) continue;
+      await db.insert(schema.eventSchemas).values({
+        siteId,
+        eventName: es.eventName,
+        description: es.description,
+        propertiesSchema: es.propertiesSchema,
+        enforceStrict: es.enforceStrict,
+      });
+    }
+    console.log(`  Inserted ${EVENT_SCHEMAS.length} event schemas for site ${siteId}`);
+  } finally {
+    await close();
+  }
 }
 
 async function seed() {
@@ -119,19 +267,14 @@ async function seed() {
   let site1Id: string;
   let site2Id: string;
 
+  let allSites: Array<{ id: string; name: string }>;
+
   if (existingSites.length > 0) {
     console.log("Sites already exist, skipping.");
-    const allSites = await db
-      .select()
+    allSites = await db
+      .select({ id: schema.sites.id, name: schema.sites.name })
       .from(schema.sites)
       .where(eq(schema.sites.userId, userId));
-    const siteIds = allSites.map((s) => s.id);
-
-    console.log("Seeding ClickHouse for existing sites...");
-    for (const sid of siteIds) {
-      const n = await seedClickhouse(sid);
-      console.log(`  Inserted ${n} events for site ${sid}`);
-    }
   } else {
     console.log("Creating sites...");
     site1Id = crypto.randomUUID();
@@ -163,18 +306,27 @@ async function seed() {
     });
 
     console.log(`  API key (raw): ${rawKey}`);
-  }
 
-  if (existingSites.length === 0) {
-    console.log("Seeding ClickHouse...");
-    const allSites = await db
-      .select()
+    allSites = await db
+      .select({ id: schema.sites.id, name: schema.sites.name })
       .from(schema.sites)
       .where(eq(schema.sites.userId, userId));
-    for (const site of allSites) {
-      const n = await seedClickhouse(site.id);
-      console.log(`  Inserted ${n} events for "${site.name}"`);
-    }
+  }
+
+  console.log("Seeding event schemas...");
+  for (const site of allSites) {
+    await seedEventSchemas(site.id);
+  }
+
+  console.log("Seeding person profiles...");
+  for (const site of allSites) {
+    await seedPersonProfiles(site.id);
+  }
+
+  console.log("Seeding ClickHouse events...");
+  for (const site of allSites) {
+    const n = await seedClickhouse(site.id);
+    console.log(`  Inserted ${n} events for "${site.name}"`);
   }
 
   await close();
