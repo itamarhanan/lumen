@@ -62,18 +62,34 @@ function opsForType(type: PropertyFilter["type"]) {
 
 // ─── Add Filter Popover ───────────────────────────────────────────────────────
 
-function AddFilterPopover({ onAdd }: { onAdd: (f: PropertyFilter) => void }) {
+function AddFilterPopover({
+  onAdd,
+  suggestions,
+}: {
+  onAdd: (f: PropertyFilter) => void;
+  suggestions: Array<{ key: string; type: string }>;
+}) {
   const [open, setOpen] = useState(false);
   const [path, setPath] = useState("");
   const [type, setType] = useState<PropertyFilter["type"]>("string");
   const [operator, setOp] = useState<PropertyFilter["operator"]>("eq");
   const [value, setValue] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const ops = opsForType(type);
 
+  const filtered = suggestions.filter((s) =>
+    s.key.toLowerCase().includes(path.toLowerCase()),
+  );
+
+  const selectSuggestion = (s: (typeof suggestions)[number]) => {
+    setPath(s.key);
+    setType(s.type as PropertyFilter["type"]);
+    setShowSuggestions(false);
+  };
+
   const handleTypeChange = (t: PropertyFilter["type"]) => {
     setType(t);
-    // reset operator if incompatible
     if (!opsForType(t).includes(operator as never)) setOp(opsForType(t)[0]);
   };
 
@@ -107,16 +123,39 @@ function AddFilterPopover({ onAdd }: { onAdd: (f: PropertyFilter) => void }) {
           Property filter
         </p>
 
-        <div className="flex flex-col gap-1.5">
+        <div className="flex flex-col gap-1.5 relative">
           <Label className="text-[10px] text-foreground/40">
             Property path
           </Label>
           <Input
             value={path}
-            onChange={(e) => setPath(e.target.value)}
+            onChange={(e) => {
+              setPath(e.target.value);
+              setShowSuggestions(true);
+            }}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
             placeholder="e.g. plan or user.role"
             className="h-7 text-xs font-mono bg-white/3 border-white/6 placeholder:text-foreground/20"
           />
+          {showSuggestions && filtered.length > 0 && (
+            <div className="absolute top-full mt-1 left-0 right-0 z-10 rounded-lg border border-white/8 bg-popover shadow-xl max-h-32 overflow-y-auto">
+              {filtered.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    selectSuggestion(s);
+                  }}
+                  className="w-full text-left px-2.5 py-1.5 text-[11px] font-mono text-foreground/70 hover:bg-white/5 transition-colors flex items-center gap-2"
+                >
+                  {s.key}
+                  <span className="text-[10px] text-foreground/30">:{s.type}</span>
+                </button>
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="grid grid-cols-2 gap-2">
@@ -319,6 +358,19 @@ export default function EventsPage() {
     { enabled, staleTime: 5 * 60 * 1000 },
   );
 
+  const allSuggestions = useMemo(() => {
+    const rows = eventTypes.data?.eventTypes ?? [];
+    const keys = selectedEventName
+      ? rows.find((r) => r.name === selectedEventName)?.properties ?? []
+      : rows.flatMap((r) => r.properties);
+    const seen = new Set<string>();
+    return keys.filter((k) => {
+      const dup = seen.has(k.key);
+      seen.add(k.key);
+      return !dup;
+    });
+  }, [eventTypes.data, selectedEventName]);
+
   const router = useRouter();
 
   // ── Drawer state ──
@@ -384,7 +436,10 @@ export default function EventsPage() {
               className="pl-7 h-8 text-xs bg-transparent border-white/8 placeholder:text-foreground/20"
             />
           </div>
-          <AddFilterPopover onAdd={addPropertyFilter} />
+          <AddFilterPopover
+            onAdd={addPropertyFilter}
+            suggestions={allSuggestions}
+          />
         </div>
 
         {/* active filter chips */}
@@ -465,6 +520,13 @@ export default function EventsPage() {
         projectId={projectId}
         from={from}
         to={to}
+        propertyKeys={
+          eventDetailTarget
+            ? (eventTypes.data?.eventTypes ?? []).find(
+                (et) => et.name === eventDetailTarget.eventName,
+              )?.properties ?? []
+            : []
+        }
       />
 
     </div>

@@ -12,6 +12,13 @@ import {
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
@@ -64,6 +71,7 @@ interface EventDetailDrawerProps {
   projectId: string;
   from: string;
   to: string;
+  propertyKeys?: Array<{ key: string; type: string }>;
 }
 
 function formatTimestamp(ts: string): string {
@@ -109,14 +117,17 @@ function BreakdownChart({
   from,
   to,
   eventColor,
+  propertyKeys,
 }: {
   projectId: string;
   eventName: string;
   from: string;
   to: string;
   eventColor: string;
+  propertyKeys: Array<{ key: string; type: string }>;
 }) {
-  const [input, setInput] = useState("");
+  const [showCustom, setShowCustom] = useState(false);
+  const [customPath, setCustomPath] = useState("");
   const [activePath, setActivePath] = useState("");
 
   const breakdown = trpc.analytics.eventBreakdown.useQuery(
@@ -126,6 +137,29 @@ function BreakdownChart({
 
   const rows = breakdown.data ?? [];
 
+  const handleSelect = (value: string) => {
+    if (value === "__custom__") {
+      setShowCustom(true);
+      return;
+    }
+    setActivePath(value);
+    setShowCustom(false);
+    setCustomPath("");
+  };
+
+  const handleCustomSubmit = () => {
+    if (customPath.trim()) {
+      setActivePath(customPath.trim());
+      setShowCustom(false);
+    }
+  };
+
+  const clear = () => {
+    setActivePath("");
+    setShowCustom(false);
+    setCustomPath("");
+  };
+
   return (
     <section>
       <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/25 mb-3">
@@ -134,25 +168,42 @@ function BreakdownChart({
 
       <div className="rounded-xl border border-white/6 overflow-hidden">
         <div className="flex items-center gap-2 p-3 border-b border-white/4">
-          <Input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && input.trim())
-                setActivePath(input.trim());
-            }}
-            placeholder="Property path, e.g. plan"
-            className="h-7 text-xs font-mono bg-white/3 border-white/6 placeholder:text-foreground/20"
-          />
+          {showCustom ? (
+            <Input
+              value={customPath}
+              onChange={(e) => setCustomPath(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleCustomSubmit();
+              }}
+              placeholder="Property path, e.g. plan"
+              className="h-7 text-xs font-mono bg-white/3 border-white/6 placeholder:text-foreground/20"
+            />
+          ) : (
+            <Select value={activePath} onValueChange={handleSelect}>
+              <SelectTrigger className="h-7 text-xs font-mono bg-white/3 border-white/6">
+                <SelectValue placeholder="Select a property…" />
+              </SelectTrigger>
+              <SelectContent>
+                {propertyKeys.map((pk) => (
+                  <SelectItem key={pk.key} value={pk.key} className="text-xs font-mono">
+                    {pk.key}
+                    <span className="text-foreground/30 ml-1">:{pk.type}</span>
+                  </SelectItem>
+                ))}
+                {propertyKeys.length > 0 && (
+                  <SelectItem value="__custom__" className="text-xs text-foreground/50">
+                    Custom path…
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          )}
           {activePath && (
             <Button
               variant="ghost"
               size="sm"
               className="h-7 px-2 text-[10px] text-foreground/35 shrink-0"
-              onClick={() => {
-                setInput("");
-                setActivePath("");
-              }}
+              onClick={clear}
             >
               Clear
             </Button>
@@ -162,7 +213,7 @@ function BreakdownChart({
         {/* states */}
         {!activePath && (
           <p className="text-xs text-foreground/25 text-center py-8 px-4">
-            Enter a property path and press Enter
+            Select a property from the dropdown
           </p>
         )}
 
@@ -218,6 +269,7 @@ export function EventDetailDrawer({
   projectId,
   from,
   to,
+  propertyKeys = [],
 }: EventDetailDrawerProps) {
   const eventColor = event ? getEventColor(event.eventName) : "#4B5563";
 
@@ -339,6 +391,7 @@ export function EventDetailDrawer({
                       from={from}
                       to={to}
                       eventColor={eventColor}
+                      propertyKeys={propertyKeys}
                     />
                   </>
                 )}
