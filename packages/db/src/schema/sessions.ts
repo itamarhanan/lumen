@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, unique } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, jsonb, unique } from "drizzle-orm/pg-core";
 import { sites } from "./sites";
 
 export const sessions = pgTable(
@@ -15,6 +15,9 @@ export const sessions = pgTable(
     device: text("device"),
     browser: text("browser"),
     os: text("os"),
+    referrer: text("referrer"),
+    entryPage: text("entry_page"),
+    sessionProperties: jsonb("session_properties"),
   },
   (table) => [
     unique("uq_sessions_site_session").on(table.siteId, table.sessionId),

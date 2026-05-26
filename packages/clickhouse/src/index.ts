@@ -32,12 +32,48 @@ export interface InsertEventsResult {
 
 const DEFAULT_BATCH_SIZE = 1000;
 
+const EVENTS_TABLE_DDL = `
+CREATE TABLE IF NOT EXISTS {db}.events (
+    event_id UUID DEFAULT generateUUIDv4(),
+    event_type LowCardinality(String),
+    event_name String,
+    properties String,
+    actor_id String,
+    session_id String,
+    project_id String,
+    source LowCardinality(String),
+    timestamp DateTime64(3) NOT NULL,
+    inserted_at DateTime DEFAULT now()
+) ENGINE = MergeTree()
+PARTITION BY toDate(timestamp)
+ORDER BY (project_id, event_type, toStartOfHour(timestamp), event_id)
+TTL toDate(timestamp) + INTERVAL 90 DAY
+SETTINGS index_granularity = 8192
+`;
+
+async function ensureSchema(
+  client: ReturnType<typeof createCHClient>,
+  database: string,
+): Promise<void> {
+  await client.query({ query: `CREATE DATABASE IF NOT EXISTS ${database}` });
+  await client.query({
+    query: EVENTS_TABLE_DDL.replace(/\{db\}/g, database),
+  });
+}
+
 export function createClient(config?: ClickHouseConfig): ClickHouseClient {
+  const database = config?.database ?? "default";
   const client = createCHClient({
     url: config?.url ?? "http://localhost:8123",
     username: config?.username ?? "default",
     password: config?.password ?? "",
-    database: config?.database ?? "default",
+    database,
+  });
+
+  ensureSchema(client, database).catch((err: Error) => {
+    process.stderr.write(
+      `[clickhouse] Schema migration failed (db=${database}): ${err.message}\n`,
+    );
   });
 
   async function insert(table: string, rows: object[]) {

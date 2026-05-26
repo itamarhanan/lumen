@@ -19,10 +19,21 @@ export interface CustomEvent extends BaseEvent {
   properties?: EventProperties;
 }
 
+export interface IdentifyPayload {
+  type: "identify";
+  siteId: string;
+  sessionId: string;
+  visitorId: string;
+  timestamp: number;
+  properties: EventProperties;
+}
+
 export type LumenEvent = PageviewEvent | CustomEvent;
 
+export type RedisStreamPayload = LumenEvent | IdentifyPayload;
+
 export interface RedisEnvelope {
-  raw: LumenEvent;
+  raw: RedisStreamPayload;
   receivedAt: number;
   ip?: string;
   userAgent?: string;

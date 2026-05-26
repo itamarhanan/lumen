@@ -1,5 +1,5 @@
 import type { LumenConfig, LumenClient, EventProperties } from './types';
-import type { PageviewEvent, CustomEvent } from './types';
+import type { PageviewEvent, CustomEvent, IdentifyPayload } from './types';
 import { createSessionManager } from './session';
 import { createTransport } from './transport';
 import { createSpaListener } from './spa';
@@ -69,9 +69,21 @@ export function createLumen(config: LumenConfig): LumenClient {
     send(event);
   }
 
-  function identify(id: string) {
-    visitorId = id;
-    persistVisitorId(id);
+  function identify(idOrProps: string | EventProperties) {
+    if (typeof idOrProps === 'string') {
+      visitorId = idOrProps;
+      persistVisitorId(idOrProps);
+      return;
+    }
+    const payload: IdentifyPayload = {
+      type: 'identify',
+      siteId,
+      sessionId: getSessionId(),
+      visitorId,
+      timestamp: Date.now(),
+      properties: idOrProps,
+    };
+    send(payload);
   }
 
   function destroy() {

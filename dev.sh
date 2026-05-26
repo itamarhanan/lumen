@@ -44,6 +44,8 @@ echo "Waiting for ClickHouse..."
 for i in $(seq 1 30); do
   if docker compose -f docker-compose.dev.yml exec -T clickhousedb wget -qO- http://127.0.0.1:8123/ping 2>/dev/null; then
     echo "ClickHouse is ready."
+    echo "Running ClickHouse migration..."
+    npm run migrate:clickhouse
     break
   fi
   if [ "$i" -eq 30 ]; then

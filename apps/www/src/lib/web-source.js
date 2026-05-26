@@ -122,11 +122,23 @@
     track("pageview");
   });
 
+  function sendIdentify(properties) {
+    send({
+      type: "identify",
+      siteId: SITE_ID,
+      sessionId: getSessionId(),
+      visitorId: getVisitorId(),
+      properties: properties,
+      timestamp: Date.now(),
+    });
+  }
+
   // Public API
   var api = {
     pageview: function () { track("pageview"); },
     event: function (name, meta) { track("custom", name, meta); },
     set: function (traits) { setTraits(traits); },
+    identify: function (traits) { sendIdentify(traits); },
   };
 
   // Drain pre-load queue (supports both [method, ...args] and function calls)
@@ -142,6 +154,7 @@
     if (cmd === "pageview") return api.pageview();
     if (cmd === "event") return api.event(arg1, arg2);
     if (cmd === "set") return api.set(arg1);
+    if (cmd === "identify") return api.identify(arg1);
   };
   for (var k in api) fn[k] = api[k];
   window.lumen = fn;

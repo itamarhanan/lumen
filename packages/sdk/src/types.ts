@@ -8,6 +8,7 @@ export interface LumenClient {
   pageview(url?: string, referrer?: string): void;
   event(name: string, properties?: EventProperties): void;
   identify(visitorId: string): void;
+  identify(properties: EventProperties): void;
   resetSession(): void;
   destroy(): void;
 }
@@ -31,6 +32,15 @@ export interface CustomEvent extends BaseEvent {
   type: 'custom';
   name: string;
   properties?: EventProperties;
+}
+
+export interface IdentifyPayload {
+  type: 'identify';
+  siteId: string;
+  sessionId: string;
+  visitorId: string;
+  timestamp: number;
+  properties: EventProperties;
 }
 
 export type LumenEvent = PageviewEvent | CustomEvent;

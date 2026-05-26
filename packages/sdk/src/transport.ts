@@ -1,7 +1,9 @@
-import type { LumenEvent } from './types';
+import type { LumenEvent, IdentifyPayload } from './types';
+
+export type SendPayload = LumenEvent | IdentifyPayload;
 
 export function createTransport(ingestUrl: string) {
-  function send(event: LumenEvent): void {
+  function send(event: SendPayload): void {
     const body = JSON.stringify(event);
 
     if (typeof navigator !== 'undefined' && navigator.sendBeacon) {

@@ -7,7 +7,8 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "check-types": "turbo check-types",
-    "migrate:clickhouse": "CLICKHOUSE_DB=${CLICKHOUSE_DB:-lumen} bash -c 'envsubst < clickhouse/migrations/001_events.sql | curl -s -X POST http://localhost:8123/ --data-binary @-'",
+    "sandcastle": "npx tsx .sandcastle/main.mts",
+    "migrate:clickhouse": "CLICKHOUSE_DB=${CLICKHOUSE_DB:-lumen} bash -c 'db=\"$CLICKHOUSE_DB\"; envsubst < clickhouse/migrations/001_events.sql | tr \"\\n\" \" \" | sed \"s/; */;\\n/g\" | while read -r stmt; do [ -n \"$stmt\" ] && echo \"$stmt\" | curl -s -X POST http://localhost:8123/ --data-binary @- > /dev/null; done; echo \"ClickHouse migration complete (db=$db)\"'",
     "ci": "pnpm install && pnpm turbo lint && pnpm turbo check-types && pnpm knip && pnpm turbo test"
   },
   "keywords": [],
@@ -20,11 +21,13 @@
     ]
   },
   "devDependencies": {
+    "@ai-hero/sandcastle": "^0.5.12",
     "eslint": "catalog:",
+    "knip": "^5",
     "supabase": "^2.100.1",
+    "tsx": "^4.22.0",
     "turbo": "^2.9.8",
-    "typescript-eslint": "catalog:",
-    "knip": "^5"
+    "typescript-eslint": "catalog:"
   },
   "dependencies": {
     "typescript": "catalog:"

@@ -30,7 +30,7 @@ export function TopPages({ pages, loading }: TopPagesProps) {
             ))}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" aria-label="Top pages by pageviews">
             <thead>
               <tr className="border-b border-border dark:border-white/5">
                 <th className="px-3 sm:px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
@@ -55,7 +55,7 @@ export function TopPages({ pages, loading }: TopPagesProps) {
                   )}
                 >
                   <td className="max-w-35 truncate px-3 sm:max-w-none sm:px-4 py-3 font-mono text-[12px] text-foreground/70">
-                    {p.path}
+                    <span title={p.path}>{p.path}</span>
                   </td>
                   <td className="px-3 sm:px-4 py-3 text-right text-foreground/50 tabular-nums whitespace-nowrap">
                     {p.pageviews.toLocaleString()}

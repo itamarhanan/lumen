@@ -9,6 +9,7 @@ import {
   createClient as createClickHouseClient,
   type ClickHouseClient,
 } from "@lumen/clickhouse";
+import postgres from "postgres";
 import { UAParser } from "ua-parser-js";
 import express from "express";
 
@@ -35,7 +36,7 @@ const PROCESSOR_PORT = parseInt(requireEnv("PROCESSOR_PORT"), 10);
 
 interface RedisEnvelope {
   raw: {
-    type: "pageview" | "custom";
+    type: "pageview" | "custom" | "identify";
     siteId: string;
     sessionId: string;
     visitorId: string;
@@ -43,6 +44,7 @@ interface RedisEnvelope {
     url?: string;
     referrer?: string;
     name?: string;
+    country?: string;
     properties?: Record<string, unknown>;
   };
   receivedAt: number;
@@ -68,10 +70,29 @@ interface PendingEntry {
 
 let redis: RedisClient;
 let clickhouse: ClickHouseClient;
+let pg: ReturnType<typeof postgres> | undefined;
 let running = true;
 const pending: PendingEntry[] = [];
 let lastFlush = Date.now();
 let flushing = false;
+
+async function handleIdentify(envelope: RedisEnvelope) {
+  if (!pg) return;
+  const { raw } = envelope;
+  const props = JSON.stringify(raw.properties ?? {});
+  const siteId = raw.siteId;
+  const sessionId = raw.sessionId;
+
+  await pg.unsafe(
+    `INSERT INTO sessions (site_id, session_id, session_properties, last_seen_at)
+     VALUES ($1, $2, $3::jsonb, NOW())
+     ON CONFLICT (site_id, session_id)
+     DO UPDATE SET
+       session_properties = COALESCE(sessions.session_properties, '{}'::jsonb) || $3::jsonb,
+       last_seen_at = NOW()`,
+    [siteId, sessionId, props],
+  );
+}
 
 function parseUa(userAgent?: string) {
   if (!userAgent) {
@@ -234,6 +255,12 @@ async function main() {
     password: CLICKHOUSE_PASSWORD,
   });
 
+  const pgUrl =
+    process.env.DATABASE_URL_PROCESSOR ?? process.env.DATABASE_URL;
+  if (pgUrl) {
+    pg = postgres(pgUrl);
+  }
+
   await redis.ensureGroup(REDIS_STREAM, REDIS_CONSUMER_GROUP);
 
   const pendingEntries: StreamEntry[] = await redis.claimPending(
@@ -248,6 +275,17 @@ async function main() {
       const envelope = JSON.parse(
         entry.fields["data"] ?? "{}",
       ) as RedisEnvelope;
+
+      if (envelope.raw.type === "identify") {
+        try {
+          await handleIdentify(envelope);
+        } catch (err) {
+          console.error("Failed to upsert session for identify event:", err);
+        }
+        await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
+        continue;
+      }
+
       pending.push({
         id: entry.id,
         retries: 0,
@@ -292,6 +330,17 @@ async function main() {
           const envelope = JSON.parse(
             entry.fields["data"] ?? "{}",
           ) as RedisEnvelope;
+
+          if (envelope.raw.type === "identify") {
+            try {
+              await handleIdentify(envelope);
+            } catch (err) {
+              console.error("Failed to upsert session for identify event:", err);
+            }
+            await redis.acknowledge(REDIS_STREAM, REDIS_CONSUMER_GROUP, entry.id);
+            continue;
+          }
+
           pending.push({
             id: entry.id,
             retries: 0,
@@ -315,6 +364,7 @@ async function main() {
 
   clearInterval(timer);
   await flush();
+  if (pg) await pg.end();
   await redis.close();
   await clickhouse.close();
 }

@@ -30,7 +30,7 @@ export function TopSources({ sources, loading }: TopSourcesProps) {
             ))}
           </div>
         ) : (
-          <table className="w-full text-sm">
+          <table className="w-full text-sm" aria-label="Top traffic sources by visitors">
             <thead>
               <tr className="border-b border-border dark:border-white/5">
                 <th className="px-3 sm:px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">

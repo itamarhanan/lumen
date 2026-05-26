@@ -21,6 +21,7 @@
   "devDependencies": {
     "@eslint/js": "catalog:",
     "@lumen/config": "workspace:*",
+    "@types/node": "^22",
     "eslint": "catalog:",
     "globals": "catalog:",
     "typescript": "catalog:",

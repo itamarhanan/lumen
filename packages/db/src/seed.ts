@@ -21,6 +21,139 @@ const PATHS = [
   "/products/2",
 ];
 
+const EVENT_TEMPLATES = [
+  {
+    name: "button_click",
+    weight: 25,
+    props: () => ({
+      buttonId: randomItem(["cta-hero", "nav-signup", "submit-form", "menu-toggle", "social-share"]),
+      page: randomItem(PATHS),
+      label: "",
+    }),
+  },
+  {
+    name: "page_scroll",
+    weight: 20,
+    props: () => ({
+      depth: randomInt(10, 100),
+      page: randomItem(PATHS),
+    }),
+  },
+  {
+    name: "form_submit",
+    weight: 12,
+    props: () => ({
+      formName: randomItem(["newsletter", "contact", "signup", "feedback"]),
+      fieldsCount: randomInt(3, 12),
+      isValid: Math.random() > 0.2,
+    }),
+  },
+  {
+    name: "search",
+    weight: 10,
+    props: () => ({
+      query: randomItem(["react hooks", "tailwind css", "next.js", "typescript", "docker compose", "postgresql"]),
+      resultsCount: randomInt(0, 50),
+    }),
+  },
+  {
+    name: "video_play",
+    weight: 8,
+    props: () => ({
+      videoId: randomItem(["intro", "tutorial-1", "demo", "webinar"]),
+      duration: randomInt(30, 600),
+      autoplay: Math.random() > 0.5,
+    }),
+  },
+  {
+    name: "error",
+    weight: 5,
+    props: () => ({
+      message: randomItem([
+        "Network request failed",
+        "Invalid form data",
+        "Session expired. Please refresh the page and try again. If the problem persists, contact support.",
+        "Failed to load resource",
+      ]),
+      code: randomInt(400, 503),
+    }),
+  },
+  {
+    name: "nested_data",
+    weight: 3,
+    props: () => ({
+      metadata: {
+        source: randomItem(["api", "web", "mobile"]),
+        version: randomInt(1, 5),
+        tags: randomItem([["urgent", "feature"], ["bug"], ["enhancement", "ui", "a11y"], []]),
+      },
+    }),
+  },
+  {
+    name: "payment",
+    weight: 5,
+    props: () => ({
+      amount: randomInt(5, 200),
+      currency: randomItem(["USD", "EUR", "GBP"]),
+      success: Math.random() > 0.1,
+    }),
+  },
+  {
+    name: "empty_event",
+    weight: 4,
+    props: () => ({}),
+  },
+  {
+    name: "feature_flag",
+    weight: 3,
+    props: () => ({
+      flag: randomItem(["new_checkout", "dark_mode", "beta_search", "recommendations"]),
+      enabled: Math.random() > 0.5,
+      variants: null,
+    }),
+  },
+  {
+    name: "notification_click",
+    weight: 3,
+    props: () => ({
+      type: randomItem(["promo", "reminder", "alert", "update"]),
+      campaign: randomItem(["spring_sale", "welcome", "abandoned_cart", "weekly_digest"]),
+    }),
+  },
+  {
+    name: "rating",
+    weight: 2,
+    props: () => ({
+      score: randomInt(1, 5),
+      comment: Math.random() > 0.7
+        ? randomItem([
+            "Amazing product! Would definitely recommend to others. The quality exceeded my expectations.",
+            "Good but could be improved.",
+            "Not what I expected, but it works fine for basic use cases.",
+          ])
+        : "",
+    }),
+  },
+];
+
+function randomItem<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function randomInt(min: number, max: number): number {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function pickWeightedEvent(): (typeof EVENT_TEMPLATES)[number] {
+  const totalWeight = EVENT_TEMPLATES.reduce((s, e) => s + e.weight, 0);
+  let roll = Math.random() * totalWeight;
+  for (const tpl of EVENT_TEMPLATES) {
+    roll -= tpl.weight;
+    if (roll <= 0) return tpl;
+  }
+  return EVENT_TEMPLATES[0]!;
+}
+
 async function seedClickhouse(projectId: string): Promise<number> {
   const events: object[] = [];
   const now = new Date();
@@ -47,32 +180,53 @@ async function seedClickhouse(projectId: string): Promise<number> {
       ts.setMilliseconds(0);
 
       const sessionIdx = Math.floor(Math.random() * sessions.length);
-      const sessionId = sessions[sessionIdx];
+      const sessionId = sessions[sessionIdx]!;
 
       const path = PATHS[Math.floor(Math.random() * PATHS.length)]!;
-      const isPageview = Math.random() < 0.75;
+      const isPageview = Math.random() < 0.65;
 
-      events.push({
-        event_type: isPageview ? "pageview" : "custom",
-        event_name: isPageview ? "pageview" : "button_click",
-        properties: JSON.stringify({
-          url: path,
-          title: path === "/" ? "Home" : path.replace("/", ""),
-        }),
-        actor_id: crypto.randomUUID(),
-        session_id: sessionId,
-        project_id: projectId,
-        source: "web",
-        timestamp: ts
-          .toISOString()
-          .replace("T", " ")
-          .replace("Z", "")
-          .slice(0, 23),
-      });
+      if (isPageview) {
+        events.push({
+          event_type: "pageview",
+          event_name: "pageview",
+          properties: JSON.stringify({
+            url: path,
+            title: path === "/" ? "Home" : path.replace("/", ""),
+          }),
+          actor_id: crypto.randomUUID(),
+          session_id: sessionId,
+          project_id: projectId,
+          source: "web",
+          timestamp: ts
+            .toISOString()
+            .replace("T", " ")
+            .replace("Z", "")
+            .slice(0, 23),
+        });
+      } else {
+        const tpl = pickWeightedEvent();
+        events.push({
+          event_type: "custom",
+          event_name: tpl.name,
+          properties: JSON.stringify({
+            ...tpl.props(),
+            url: path,
+          }),
+          actor_id: crypto.randomUUID(),
+          session_id: sessionId,
+          project_id: projectId,
+          source: "web",
+          timestamp: ts
+            .toISOString()
+            .replace("T", " ")
+            .replace("Z", "")
+            .slice(0, 23),
+        });
+      }
     }
   }
 
-  let inserted = 0;
+  // Bulk insert main events in batches
   const batchSize = 1000;
   for (let i = 0; i < events.length; i += batchSize) {
     const batch = events.slice(i, i + batchSize);
@@ -87,11 +241,47 @@ async function seedClickhouse(projectId: string): Promise<number> {
       const text = await res.text();
       throw new Error(`ClickHouse insert failed at batch ${i}: ${text}`);
     }
-
-    inserted += batch.length;
   }
 
-  return inserted;
+  // Sprinkle rare events (1-3 occurrences each) to test low-volume rendering
+  const RARE_EVENTS = [
+    { name: "admin_action", props: { action: "user_ban", targetId: crypto.randomUUID(), severity: "high" } },
+    { name: "data_export", props: { format: "csv", rows: 15000, estimatedSizeMB: 2.4 } },
+    { name: "webhook_failed", props: { endpoint: "https://api.example.com/hooks/1", statusCode: 504, retryCount: 3 } },
+  ];
+
+  const rareBatch: object[] = [];
+  for (const evt of RARE_EVENTS) {
+    const count = randomInt(1, 3);
+    for (let i = 0; i < count; i++) {
+      const ts = new Date(now);
+      ts.setMinutes(ts.getMinutes() - randomInt(1, 60));
+      rareBatch.push({
+        event_type: "custom",
+        event_name: evt.name,
+        properties: JSON.stringify(evt.props),
+        actor_id: crypto.randomUUID(),
+        session_id: crypto.randomUUID(),
+        project_id: projectId,
+        source: "web",
+        timestamp: ts.toISOString().replace("T", " ").replace("Z", "").slice(0, 23),
+      });
+    }
+  }
+
+  if (rareBatch.length > 0) {
+    const body = rareBatch.map((e) => JSON.stringify(e)).join("\n");
+    const res = await fetch(
+      `${CH_URL}/?query=INSERT INTO ${CH_DB}.events FORMAT JSONEachRow`,
+      { method: "POST", body, headers: { "Content-Type": "text/plain" } },
+    );
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`ClickHouse rare events insert failed: ${text}`);
+    }
+  }
+
+  return events.length + rareBatch.length;
 }
 
 async function seed() {
