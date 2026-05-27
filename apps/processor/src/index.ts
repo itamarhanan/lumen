@@ -10,7 +10,7 @@ import {
   type ClickHouseClient,
 } from "@lumen/clickhouse";
 import { UAParser } from "ua-parser-js";
-import geoip from "geoip-lite";
+import * as geoip from "geoip-lite";
 import express from "express";
 
 function requireEnv(key: string): string {
