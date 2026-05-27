@@ -10,6 +10,7 @@ import {
   type ClickHouseClient,
 } from "@lumen/clickhouse";
 import { UAParser } from "ua-parser-js";
+import * as geoip from "geoip-lite";
 import express from "express";
 
 function requireEnv(key: string): string {
@@ -72,6 +73,7 @@ let running = true;
 const pending: PendingEntry[] = [];
 let lastFlush = Date.now();
 let flushing = false;
+let geoipAvailable = true;
 
 function parseUa(userAgent?: string) {
   if (!userAgent) {
@@ -108,9 +110,28 @@ function toRow(envelope: RedisEnvelope): PendingEntry["row"] {
 
   const ua = parseUa(userAgent);
 
+  let geo: Record<string, unknown> = {};
+  if (geoipAvailable && ip) {
+    try {
+      const lookup = geoip.lookup(ip);
+      if (lookup) {
+        geo = {
+          geo_country: lookup.country,
+          geo_city: lookup.city,
+          geo_region: lookup.region,
+          geo_latitude: lookup.ll?.[0],
+          geo_longitude: lookup.ll?.[1],
+        };
+      }
+    } catch {
+      /* single lookup failure does not drop the event */
+    }
+  }
+
   const properties: Record<string, unknown> = {
     ...(raw.type === "custom" ? raw.properties : undefined),
     ...ua,
+    ...geo,
   };
 
   if (ip) properties.ip = ip;
@@ -233,6 +254,13 @@ async function main() {
     username: CLICKHOUSE_USER,
     password: CLICKHOUSE_PASSWORD,
   });
+
+  try {
+    geoip.lookup("8.8.8.8");
+  } catch {
+    console.warn("GeoIP database not available — geo enrichment disabled");
+    geoipAvailable = false;
+  }
 
   await redis.ensureGroup(REDIS_STREAM, REDIS_CONSUMER_GROUP);
 
