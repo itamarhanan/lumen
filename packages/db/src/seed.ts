@@ -59,7 +59,7 @@ async function seedClickhouse(projectId: string): Promise<number> {
           url: path,
           title: path === "/" ? "Home" : path.replace("/", ""),
         }),
-        actor_id: crypto.randomUUID(),
+        person_id: crypto.randomUUID(),
         session_id: sessionId,
         project_id: projectId,
         source: "web",
