@@ -15,6 +15,7 @@ const BaseEvent = z.object({
   siteId: z.string().min(1),
   sessionId: z.string().min(1),
   visitorId: z.string().min(1),
+  personId: z.string().optional(),
   timestamp: z.number().int().positive(),
 });
 
@@ -30,9 +31,16 @@ const CustomEventSchema = BaseEvent.extend({
   properties: z.record(z.string(), PropertyValue).optional(),
 });
 
+const IdentifyEventSchema = BaseEvent.extend({
+  type: z.literal('identify'),
+  personId: z.string().min(1),
+  properties: z.record(z.string(), PropertyValue).optional(),
+});
+
 export const LumenEventSchema = z.discriminatedUnion('type', [
   PageviewEventSchema,
   CustomEventSchema,
+  IdentifyEventSchema,
 ]);
 
 export type LumenEvent = z.infer<typeof LumenEventSchema>;
