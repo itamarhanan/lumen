@@ -4,6 +4,9 @@ import * as schema from "./schema/index";
 
 export type DbRole = "admin" | "api" | "processor";
 
+export { validateEvent } from "./validate-event";
+export type { PropertySchema, PropertiesSchema, ValidationResult } from "./validate-event";
+
 function getConnectionUrl(role: DbRole): string {
   switch (role) {
     case "admin":
