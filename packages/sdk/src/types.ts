@@ -7,7 +7,8 @@ export interface LumenConfig {
 export interface LumenClient {
   pageview(url?: string, referrer?: string): void;
   event(name: string, properties?: EventProperties): void;
-  identify(visitorId: string): void;
+  identify(personId: string, properties?: EventProperties): void;
+  setPersonProperties(properties: EventProperties): void;
   resetSession(): void;
   destroy(): void;
 }
@@ -18,6 +19,7 @@ interface BaseEvent {
   siteId: string;
   sessionId: string;
   visitorId: string;
+  personId?: string;
   timestamp: number;
 }
 
@@ -33,4 +35,10 @@ export interface CustomEvent extends BaseEvent {
   properties?: EventProperties;
 }
 
-export type LumenEvent = PageviewEvent | CustomEvent;
+export interface IdentifyEvent extends BaseEvent {
+  type: 'identify';
+  personId: string;
+  properties?: EventProperties;
+}
+
+export type LumenEvent = PageviewEvent | CustomEvent | IdentifyEvent;
