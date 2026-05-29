@@ -18,10 +18,6 @@ function getOrCreateVisitorId(): string {
   return id;
 }
 
-function persistVisitorId(id: string): void {
-  try { localStorage.setItem(VISITOR_KEY, id); } catch { /* empty */ }
-}
-
 function getPersonId(): string | undefined {
   try {
     return localStorage.getItem(PERSON_KEY) ?? undefined;
@@ -39,7 +35,7 @@ export function createLumen(config: LumenConfig): LumenClient {
   const { getSessionId, resetSession } = createSessionManager();
   const { send } = createTransport(ingestUrl);
 
-  let visitorId = getOrCreateVisitorId();
+  const visitorId = getOrCreateVisitorId();
   let lastUrl: string | null = null;
   let lastReferrer: string | undefined = typeof document !== 'undefined' ? document.referrer || undefined : undefined;
 
@@ -107,7 +103,7 @@ export function createLumen(config: LumenConfig): LumenClient {
     const event: IdentifyEvent = {
       ...buildBase(),
       type: 'identify',
-      personId: personId!,
+      personId: personId,
       properties,
     };
 
