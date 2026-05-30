@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo } from "react";
 import {
   Sheet,
   SheetContent,
@@ -9,115 +10,212 @@ import {
 } from "@/components/ui/sheet";
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc/client";
+import { ChevronRight } from "lucide-react";
+import { SectionLabel, InferredRow, EmptyValue } from "./property-inspector";
+import {
+  formatDistanceToNow,
+  parse,
+  differenceInHours,
+  format,
+} from "date-fns";
 
 interface PersonDrawerProps {
   projectId: string;
   personId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onEventClick: (eventName: string, properties: string) => void;
+  onViewAllEvents?: (personId: string) => void;
 }
+
+function formatTime(ts: string): string {
+  try {
+    const parsed = parse(ts.slice(0, 19), "yyyy-MM-dd HH:mm:ss", new Date());
+    const hoursDiff = differenceInHours(new Date(), parsed);
+    if (hoursDiff < 24) {
+      return formatDistanceToNow(parsed, { addSuffix: true });
+    }
+    return format(parsed, "MMM d, HH:mm");
+  } catch {
+    return ts;
+  }
+}
+
+const TYPE_DOT: Record<string, string> = {
+  pageview: "bg-primary",
+  custom: "bg-amber-400",
+  identify: "bg-cyan-400",
+};
 
 export function PersonDrawer({
   projectId,
   personId,
   open,
   onOpenChange,
+  onEventClick,
+  onViewAllEvents,
 }: PersonDrawerProps) {
   const { data, isLoading } = trpc.events.person.useQuery(
     { projectId, personId, limit: 10 },
     { enabled: open },
   );
 
+  const events = data?.recentEvents ?? [];
+
+  const profileProperties = useMemo(() => {
+    if (!data?.profile) return null;
+
+    const raw = data.profile.properties
+      ? (JSON.parse(data.profile.properties) as Record<string, unknown>)
+      : ({} as Record<string, unknown>);
+
+    const merged = { ...raw };
+
+    if (!("first_seen_at" in merged)) {
+      merged.first_seen_at = data.profile.first_seen_at;
+    }
+    if (!("updated_at" in merged)) {
+      merged.updated_at = data.profile.updated_at;
+    }
+
+    return merged;
+  }, [data]);
+
+  const handleViewAllEvents = () => {
+    onOpenChange(false);
+    onViewAllEvents?.(personId);
+  };
+
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
-        <SheetHeader>
-          <SheetTitle className="text-sm font-semibold">
-            Person details
-          </SheetTitle>
+        <SheetHeader className="px-4 pt-6 pb-3">
+          <div className="flex items-center gap-2">
+            <SheetTitle className="text-sm font-semibold pr-0">
+              Person
+            </SheetTitle>
+            {data && (
+              <Badge
+                variant={
+                  data.profile?.is_identified === 1 ? "default" : "secondary"
+                }
+                className="text-xs"
+              >
+                {data.profile?.is_identified === 1 ? "Identified" : "Anonymous"}
+              </Badge>
+            )}
+          </div>
           <SheetDescription className="text-xs text-foreground/40 break-all font-mono">
             {personId}
           </SheetDescription>
         </SheetHeader>
 
-        {isLoading ? (
-          <div className="mt-6 space-y-3">
-            <div className="h-4 w-24 animate-pulse rounded bg-white/5" />
-            <div className="h-20 w-full animate-pulse rounded-xl bg-white/5" />
-          </div>
-        ) : (
-          <div className="mt-6 space-y-6">
-            {data?.profile ? (
-              <>
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-foreground/35 mb-2">
-                    Profile
-                  </p>
-                  <div className="space-y-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-foreground/40">Status</span>
-                      <Badge
-                        variant={data.profile.is_identified === 1 ? "default" : "secondary"}
-                        className="text-[10px]"
-                      >
-                        {data.profile.is_identified === 1 ? "Identified" : "Anonymous"}
-                      </Badge>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-foreground/40">First seen</span>
-                      <span>{data.profile.first_seen_at}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-foreground/40">Last updated</span>
-                      <span>{data.profile.updated_at}</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-foreground/35 mb-2">
-                    Properties
-                  </p>
-                  <pre className="rounded-xl bg-muted dark:bg-white/4 p-3 text-xs overflow-x-auto">
-                    {JSON.stringify(
-                      JSON.parse(data.profile.properties ?? "{}"),
-                      null,
-                      2,
-                    )}
-                  </pre>
-                </div>
-              </>
-            ) : (
-              <p className="text-xs text-foreground/40">
-                No profile found for this person.
-              </p>
-            )}
-
-            {data?.recentEvents && data.recentEvents.length > 0 && (
-              <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-foreground/35 mb-2">
-                  Recent events ({data.recentEvents.length})
-                </p>
+        <div className="px-4 mt-6 space-y-6 pb-6">
+          {isLoading ? (
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <div className="h-3 w-20 animate-pulse rounded bg-white/5" />
                 <div className="space-y-1">
-                  {data.recentEvents.map((e) => (
+                  {Array.from({ length: 3 }).map((_, i) => (
                     <div
-                      key={e.event_id}
-                      className="rounded-lg bg-muted dark:bg-white/4 px-3 py-2 text-xs"
+                      key={i}
+                      className="flex items-center gap-2 px-2 py-1.5"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">{e.event_name}</span>
-                        <span className="text-foreground/40">{e.timestamp}</span>
-                      </div>
-                      <span className="text-foreground/30 text-[10px]">
-                        {e.event_type}
-                      </span>
+                      <div className="h-2.5 w-16 animate-pulse rounded bg-white/5" />
+                      <div className="h-4 w-10 animate-pulse rounded-md bg-white/8" />
+                      <div className="h-2.5 w-24 animate-pulse rounded bg-white/5 ml-auto" />
                     </div>
                   ))}
                 </div>
               </div>
-            )}
-          </div>
-        )}
+              <div className="space-y-3">
+                <div className="h-3 w-24 animate-pulse rounded bg-white/5" />
+                <div className="rounded-xl bg-muted dark:bg-white/4 overflow-hidden divide-y divide-border/50 dark:divide-white/5">
+                  {Array.from({ length: 4 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="flex items-center justify-between px-3 py-2.5"
+                    >
+                      <div className="flex items-center gap-2">
+                        <div className="size-1.5 rounded-full bg-white/10" />
+                        <div className="h-3 w-24 animate-pulse rounded bg-white/5" />
+                      </div>
+                      <div className="h-3 w-14 animate-pulse rounded bg-white/5" />
+                    </div>
+                  ))}
+                </div>
+                <div className="h-3 w-28 animate-pulse rounded bg-white/5" />
+              </div>
+            </div>
+          ) : (
+            <>
+              {profileProperties !== null && (
+                <div>
+                  <SectionLabel
+                    label="Properties"
+                    count={Object.keys(profileProperties).length}
+                  />
+                  <div className="space-y-0.5">
+                    {Object.keys(profileProperties).length > 0 ? (
+                      Object.entries(profileProperties).map(([key, value]) => (
+                        <InferredRow key={key} propKey={key} value={value} />
+                      ))
+                    ) : (
+                      <p className="text-xs text-foreground/40 px-2 py-1">
+                        <EmptyValue />
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {events.length > 0 && (
+                <div>
+                  <SectionLabel label="Recent events" count={events.length} />
+                  <div className="rounded-md bg-muted dark:bg-white/4 overflow-hidden divide-y divide-border/50 dark:divide-white/5">
+                    {events.map((event) => (
+                      <button
+                        key={event.event_id}
+                        onClick={() =>
+                          onEventClick(event.event_name, event.properties)
+                        }
+                        className="flex items-center justify-between w-full px-3 py-2.5 text-xs hover:bg-black/2 dark:hover:bg-white/3 transition-colors text-left cursor-pointer"
+                      >
+                        <div className="flex items-center gap-2 min-w-0">
+                          <span
+                            className={`size-1.5 shrink-0 rounded-full ${
+                              TYPE_DOT[event.event_type] ?? "bg-foreground/20"
+                            }`}
+                          />
+                          <span className="font-medium text-foreground/80 truncate">
+                            {event.event_name}
+                          </span>
+                        </div>
+                        <span className="text-foreground/40 tabular-nums shrink-0 ml-3">
+                          {formatTime(event.timestamp)}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  <button
+                    onClick={handleViewAllEvents}
+                    className="mt-3 flex items-center gap-1.5 text-xs text-foreground/40 hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    View all events
+                    <ChevronRight className="size-3.5" />
+                  </button>
+                </div>
+              )}
+
+              {!isLoading && !data?.profile && events.length === 0 && (
+                <p className="text-xs text-foreground/40 text-center py-8">
+                  No data found for this person.
+                </p>
+              )}
+            </>
+          )}
+        </div>
       </SheetContent>
     </Sheet>
   );
