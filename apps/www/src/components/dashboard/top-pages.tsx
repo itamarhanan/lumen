@@ -33,13 +33,13 @@ export function TopPages({ pages, loading }: TopPagesProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border dark:border-white/5">
-                <th className="px-3 sm:px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Path
                 </th>
-                <th className="px-3 sm:px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Views
                 </th>
-                <th className="hidden sm:table-cell px-3 sm:px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="hidden sm:table-cell px-3 sm:px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Avg. time
                 </th>
               </tr>

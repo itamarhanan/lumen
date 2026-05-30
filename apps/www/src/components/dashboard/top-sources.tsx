@@ -33,13 +33,13 @@ export function TopSources({ sources, loading }: TopSourcesProps) {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border dark:border-white/5">
-                <th className="px-3 sm:px-4 py-3 text-left text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="px-3 sm:px-4 py-3 text-left text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Source
                 </th>
-                <th className="px-3 sm:px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="px-3 sm:px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Visitors
                 </th>
-                <th className="w-24 px-3 sm:px-4 py-3 text-right text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                <th className="w-24 px-3 sm:px-4 py-3 text-right text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                   Share
                 </th>
               </tr>
