@@ -321,7 +321,7 @@ async function seed() {
       label: "Development",
     });
 
-    console.log(`  API key (raw): ${rawKey}`);
+    console.debug(`  API key (raw): ${rawKey}`);
 
     allSites = await db
       .select({ id: schema.sites.id, name: schema.sites.name })
