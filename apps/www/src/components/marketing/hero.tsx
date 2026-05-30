@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Link from "next/link";
 
 export function Hero() {
   return (
@@ -15,10 +16,11 @@ export function Hero() {
 
         <div className="justify-center flex flex-col sm:flex-row items-center sm:items-center gap-3 mb-4">
           <Button
+            asChild
             size="lg"
             className="bg-primary text-primary-foreground hover:bg-primary/90 h-11 px-6 text-sm font-medium rounded-4xl w-full sm:w-auto"
           >
-            Start for free
+            <Link href="/login">Start for free</Link>
           </Button>
           <Button
             size="lg"
