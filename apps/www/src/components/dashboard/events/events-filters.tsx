@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useId, useMemo } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import {
   Popover,
@@ -111,7 +111,7 @@ export function EventsFilters({
 }: EventsFiltersProps) {
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
-  const genId = useId();
+
 
   const propertyFields = useMemo(
     () => mergeSchemaProperties(schemas),
@@ -149,21 +149,19 @@ export function EventsFilters({
   );
 
   const addRow = useCallback(() => {
-    const id = `${genId}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
-    setDrafts((prev) => {
-      const firstField = allFields[0]!;
-      return [
-        ...prev,
-        {
-          id,
-          field: firstField.key,
-          fieldType: firstField.type,
-          operator: defaultOperator(firstField.type),
-          value: "",
-        },
-      ];
-    });
-  }, [allFields, genId]);
+    const firstField = allFields[0];
+    if (!firstField) return;
+    setDrafts((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        field: firstField.key,
+        fieldType: firstField.type,
+        operator: defaultOperator(firstField.type),
+        value: "",
+      },
+    ]);
+  }, [allFields]);
 
   const updateRow = useCallback(
     (id: string, patch: Partial<DraftRow>) => {
@@ -247,7 +245,7 @@ export function EventsFilters({
                 <Select
                   value={row.field}
                   onValueChange={(v) =>
-                    updateRow(row.id, { field: v as string })
+                    updateRow(row.id, { field: v })
                   }
                 >
                   <SelectTrigger className="h-8 w-full text-xs rounded-xl">
@@ -285,12 +283,12 @@ export function EventsFilters({
 
               <div className="flex items-center gap-1.5 w-full sm:w-auto">
                 <div className="flex-1 sm:w-28 sm:shrink-0">
-                  <Select
-                    value={row.operator}
-                    onValueChange={(v) =>
-                      updateRow(row.id, { operator: v as FilterOperator })
-                    }
-                  >
+                    <Select
+                      value={row.operator}
+                      onValueChange={(v) =>
+                        updateRow(row.id, { operator: v as FilterOperator })
+                      }
+                    >
                     <SelectTrigger className="h-8 w-full text-xs rounded-xl">
                       <SelectValue />
                     </SelectTrigger>
