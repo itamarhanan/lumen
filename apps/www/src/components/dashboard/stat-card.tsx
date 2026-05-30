@@ -71,7 +71,7 @@ export function StatCard({
         <div className="flex flex-col gap-1">
           <p
             className={cn(
-              "text-[2rem] font-light leading-none tracking-tight",
+              "text-3xl font-light leading-none tracking-tight",
               valueColor[variant],
             )}
           >

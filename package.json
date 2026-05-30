@@ -7,7 +7,7 @@
     "lint": "turbo lint",
     "test": "turbo test",
     "check-types": "turbo check-types",
-    "migrate:clickhouse": "CLICKHOUSE_DB=${CLICKHOUSE_DB:-lumen} bash -c 'for f in packages/db/migrations/clickhouse/*.sql; do echo \"Running $f...\"; envsubst < \"$f\" | curl -s -X POST http://localhost:8123/ --data-binary @-; echo \"\"; done'",
+    "migrate:clickhouse": "CLICKHOUSE_DB=${CLICKHOUSE_DB:-lumen} bash -c 'for f in packages/db/migrations/clickhouse/*.sql; do echo \"Running $f...\"; while IFS= read -r -d \";\" stmt; do trimmed=\"${stmt# }\" ; [ -z \"$trimmed\" ] && continue; echo \"$stmt\" | envsubst | curl -s -X POST http://localhost:8123/ --data-binary @-; echo \"\"; done < \"$f\"; done'",
     "ci": "pnpm install && pnpm turbo lint && pnpm turbo check-types && pnpm knip && pnpm turbo test"
   },
   "keywords": [],

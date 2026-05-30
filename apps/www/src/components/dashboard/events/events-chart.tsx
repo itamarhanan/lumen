@@ -20,8 +20,38 @@ interface DistributionPoint {
 
 interface TipProps {
   active?: boolean;
-  payload?: Array<{ dataKey: string; stroke?: string; value?: number }>;
+  payload?: Array<{
+    dataKey: string;
+    fill?: string;
+    stroke?: string;
+    value?: number;
+  }>;
   label?: string;
+}
+
+function groupPivoted(
+  pivoted: Record<string, string | number>[],
+  maxBars: number = 8,
+): Record<string, string | number>[] {
+  if (pivoted.length <= maxBars) return pivoted;
+  const groupSize = Math.ceil(pivoted.length / maxBars);
+  const grouped: Record<string, string | number>[] = [];
+  const keys = Object.keys(pivoted[0]!).filter((k) => k !== "date");
+  for (let i = 0; i < pivoted.length; i += groupSize) {
+    const chunk = pivoted.slice(i, i + groupSize);
+    const merged: Record<string, string | number> = {
+      date: chunk[0]!.date as string,
+    };
+    for (const key of keys) {
+      let sum = 0;
+      for (const item of chunk) {
+        sum += (item[key] as number) || 0;
+      }
+      merged[key] = sum;
+    }
+    grouped.push(merged);
+  }
+  return grouped;
 }
 
 function Tip({ active, payload, label }: TipProps) {
@@ -38,12 +68,17 @@ function Tip({ active, payload, label }: TipProps) {
         })()}
       </p>
       {payload.map((p) => (
-        <div key={p.dataKey} className="flex items-center gap-3 mb-0.5 last:mb-0">
+        <div
+          key={p.dataKey}
+          className="flex items-center gap-3 mb-0.5 last:mb-0"
+        >
           <span
-            className="size-1.5 rounded-full shrink-0"
-            style={{ background: p.stroke }}
+            className="size-1.5 rounded-full"
+            style={{ background: p.fill || p.stroke }}
           />
-          <span className="text-foreground dark:text-foreground/45">{p.dataKey}</span>
+          <span className="text-foreground dark:text-foreground/45">
+            {p.dataKey}
+          </span>
           <span className="ml-auto pl-4 font-medium text-foreground">
             {p.value?.toLocaleString()}
           </span>
@@ -55,14 +90,14 @@ function Tip({ active, payload, label }: TipProps) {
 
 const COLORS = [
   "var(--color-primary)",
-  "var(--chart-tick)",
   "#f59e0b",
   "#10b981",
   "#8b5cf6",
   "#ef4444",
+  "var(--chart-grid)",
   "#06b6d4",
   "#ec4899",
-  "var(--chart-grid)",
+  "#787878",
 ];
 
 interface EventsChartProps {
@@ -86,7 +121,8 @@ export function EventsChart({
 
     const sorted = [...byName.entries()]
       .sort((a, b) => b[1] - a[1])
-      .slice(0, 8)
+      .filter(([, count]) => count > 1)
+      .slice(0, 5)
       .map(([name]) => name);
 
     const pivotMap = new Map<string, Record<string, number>>();
@@ -99,9 +135,11 @@ export function EventsChart({
       row[key] = (row[key] ?? 0) + d.count;
     }
 
-    const pivoted = [...pivotMap.entries()]
+    const raw = [...pivotMap.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
       .map(([date, counts]) => ({ date, ...counts }));
+
+    const pivoted = groupPivoted(raw);
 
     return { pivoted, eventNames: [...sorted, "Other"] };
   }, [data]);
@@ -109,24 +147,24 @@ export function EventsChart({
   if (loading) {
     return (
       <div className="flex flex-col gap-3 rounded-[1.5rem] bg-muted dark:bg-white/4 p-4 sm:p-5">
-        <div className="h-4 w-28 animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />
-        <div className="h-44 w-full animate-pulse rounded-xl bg-black/3 dark:bg-white/3" />
+        <div className="h-3 sm:h-4 w-24 sm:w-28 animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />
+        <div className="h-36 sm:h-44 w-full animate-pulse rounded-xl bg-black/3 dark:bg-white/3" />
       </div>
     );
   }
 
   return (
     <div className="rounded-[1.5rem] bg-muted dark:bg-white/4 p-4 sm:p-5">
-      <div className="mb-4 flex items-start justify-between">
+      <div className="mb-3 sm:mb-4 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground dark:text-foreground/35">
+          <p className="text-xs sm:text-xs font-semibold uppercase tracking-[0.15em] text-foreground dark:text-foreground/35">
             Events over time
           </p>
-          <p className="mt-0.5 text-xs text-foreground dark:text-foreground/20">
+          <p className="mt-0.5 text-xs sm:text-xs text-foreground dark:text-foreground/20">
             event type distribution
           </p>
         </div>
-        <div className="flex flex-wrap gap-3 text-[10px] text-foreground/30">
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[10px] sm:text-xs text-foreground/30">
           {eventNames.map((name, i) => (
             <span
               key={name}
@@ -134,7 +172,7 @@ export function EventsChart({
               onClick={() => onSegmentClick?.(name === "Other" ? null : name)}
             >
               <span
-                className="inline-block size-1.5 rounded-full"
+                className="inline-block size-1 rounded-full"
                 style={{ background: COLORS[i % COLORS.length] }}
               />
               {name}
@@ -143,10 +181,10 @@ export function EventsChart({
         </div>
       </div>
 
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={140}>
         <BarChart
           data={pivoted}
-          margin={{ top: 4, right: 0, left: -28, bottom: 0 }}
+          margin={{ top: 4, right: 4, left: -20, bottom: 0 }}
         >
           <CartesianGrid
             strokeDasharray="3 3"

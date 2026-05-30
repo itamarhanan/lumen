@@ -54,7 +54,7 @@ export function TopPages({ pages, loading }: TopPagesProps) {
                       "border-b border-border/50 dark:border-white/4",
                   )}
                 >
-                  <td className="max-w-35 truncate px-3 sm:max-w-none sm:px-4 py-3 font-mono text-[12px] text-foreground/70">
+                  <td className="max-w-35 truncate px-3 sm:max-w-none sm:px-4 py-3 font-mono text-xs text-foreground/70">
                     {p.path}
                   </td>
                   <td className="px-3 sm:px-4 py-3 text-right text-foreground/50 tabular-nums whitespace-nowrap">
