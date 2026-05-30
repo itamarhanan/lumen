@@ -1,4 +1,4 @@
-import { createClient } from "@lumen/clickhouse";
+import { createClient, type ClickHouseEvent } from "@lumen/clickhouse";
 import { z } from "zod";
 import { authedProcedure, t } from "../init";
 
@@ -153,17 +153,7 @@ export const eventsRouter = t.router({
       const where = conditions.join(" AND ");
       const take = input.limit + 1;
 
-      const rows = await ch.query<{
-        event_id: string;
-        event_type: string;
-        event_name: string;
-        properties: string;
-        person_id: string;
-        session_id: string;
-        project_id: string;
-        source: string;
-        timestamp: string;
-      }>(
+      const rows = await ch.query<ClickHouseEvent>(
         `SELECT
            event_id, event_type, event_name, properties,
            person_id, session_id, project_id, source, timestamp
@@ -230,17 +220,7 @@ export const eventsRouter = t.router({
       }),
     )
     .query(async ({ input }) => {
-      const rows = await ch.query<{
-        event_id: string;
-        event_type: string;
-        event_name: string;
-        properties: string;
-        person_id: string;
-        session_id: string;
-        project_id: string;
-        source: string;
-        timestamp: string;
-      }>(
+      const rows = await ch.query<ClickHouseEvent>(
         `SELECT
            event_id, event_type, event_name, properties,
            person_id, session_id, project_id, source, timestamp
@@ -279,17 +259,7 @@ export const eventsRouter = t.router({
              AND person_id = {personId: String}`,
           { projectId: input.projectId, personId: input.personId },
         ),
-        ch.query<{
-          event_id: string;
-          event_type: string;
-          event_name: string;
-          properties: string;
-          person_id: string;
-          session_id: string;
-          project_id: string;
-          source: string;
-          timestamp: string;
-        }>(
+        ch.query<ClickHouseEvent>(
           `SELECT
              event_id, event_type, event_name, properties,
              person_id, session_id, project_id, source, timestamp
