@@ -89,7 +89,7 @@ export default function EventDetailPage() {
     } catch {
       return null;
     }
-  }, [event?.properties]);
+  }, [event]);
 
   if (isLoading) {
     return (
