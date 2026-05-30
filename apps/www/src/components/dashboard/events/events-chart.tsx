@@ -164,7 +164,7 @@ export function EventsChart({
             event type distribution
           </p>
         </div>
-        <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[9px] sm:text-xs text-foreground/30">
+        <div className="flex flex-wrap gap-x-2.5 gap-y-1 text-[10px] sm:text-xs text-foreground/30">
           {eventNames.map((name, i) => (
             <span
               key={name}

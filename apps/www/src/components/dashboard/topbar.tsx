@@ -241,7 +241,7 @@ export function TopBar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent dark:hover:bg-white/4">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                     Site
                   </span>
                   <span className="flex items-center gap-1.5 text-foreground/70">
@@ -294,7 +294,7 @@ export function TopBar() {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-sm text-foreground transition-colors hover:bg-accent dark:hover:bg-white/4">
-                  <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-foreground/30">
+                  <span className="text-xs font-semibold uppercase tracking-[0.14em] text-foreground/30">
                     Period
                   </span>
                   <span className="flex items-center gap-1.5 text-foreground/70">

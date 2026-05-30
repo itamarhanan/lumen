@@ -26,7 +26,6 @@ interface PersonDrawerProps {
 const TYPE_DOT: Record<string, string> = {
   pageview: "bg-primary",
   custom: "bg-amber-400",
-  identify: "bg-cyan-400",
 };
 
 export function PersonDrawer({

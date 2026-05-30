@@ -15,7 +15,6 @@ import { formatEventTime } from "@/lib/date";
 const TYPE_DOT: Record<string, string> = {
   pageview: "bg-primary",
   custom: "bg-amber-400",
-  identify: "bg-cyan-400",
 };
 
 function MetaCard({
@@ -154,7 +153,10 @@ export default function EventDetailPage() {
       <div className="p-4 sm:p-6 space-y-6 max-w-2xl">
         <div className="rounded-xl bg-muted dark:bg-white/4 divide-y divide-border/50 dark:divide-white/5 overflow-hidden">
           <MetaCard label="Type" value={event.event_type} />
-          <MetaCard label="Timestamp" value={formatEventTime(event.timestamp, "MMM d, yyyy HH:mm")} />
+          <MetaCard
+            label="Timestamp"
+            value={formatEventTime(event.timestamp, "MMM d, yyyy HH:mm")}
+          />
           <MetaCard
             label="Person"
             value={event.person_id}

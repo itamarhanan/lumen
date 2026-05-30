@@ -126,7 +126,7 @@ function PricingCard({
           </span>
           <span className="text-sm text-muted-foreground">{period}</span>
         </div>
-        <p className="text-[14px] text-muted-foreground leading-relaxed">
+        <p className="text-base text-muted-foreground leading-relaxed">
           {description}
         </p>
       </div>
