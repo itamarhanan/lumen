@@ -85,7 +85,7 @@ function SchemaPropRow({
           <span className="size-3.5 shrink-0" />
         )}
 
-        <span className="text-[11px] font-semibold text-foreground/80 whitespace-nowrap font-mono shrink-0">
+        <span className="text-xs font-semibold text-foreground/80 whitespace-nowrap font-mono shrink-0">
           {propKey}
           {schema.required && (
             <span className="text-rose-400 ml-0.5 font-medium">*</span>

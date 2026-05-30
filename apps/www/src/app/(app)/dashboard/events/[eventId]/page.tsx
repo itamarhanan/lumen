@@ -56,12 +56,14 @@ function MetaCard({
           : ""
       }`}
     >
-      <span className="text-[11px] font-medium text-foreground/30 uppercase tracking-wider shrink-0">
+      <span className="text-xs font-medium text-foreground/30 uppercase tracking-wider shrink-0">
         {label}
       </span>
       <Tag
-        {...(href ? { href, className: "hover:text-foreground transition-colors" } : {})}
-        className={`text-[11px] text-foreground/70 text-right break-all min-w-0 leading-relaxed ${
+        {...(href
+          ? { href, className: "hover:text-foreground transition-colors" }
+          : {})}
+        className={`text-xs text-foreground/70 text-right break-all min-w-0 leading-relaxed ${
           mono ? "font-mono" : ""
         }`}
       >
@@ -101,7 +103,10 @@ export default function EventDetailPage() {
           <div className="h-6 w-48 animate-pulse rounded bg-black/5 dark:bg-white/5" />
           <div className="rounded-xl bg-muted dark:bg-white/4 divide-y divide-border/50 dark:divide-white/5 overflow-hidden">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between px-3 py-2.5">
+              <div
+                key={i}
+                className="flex items-center justify-between px-3 py-2.5"
+              >
                 <div className="h-3 w-16 animate-pulse rounded bg-black/5 dark:bg-white/5" />
                 <div className="h-3 w-28 animate-pulse rounded bg-black/5 dark:bg-white/5" />
               </div>

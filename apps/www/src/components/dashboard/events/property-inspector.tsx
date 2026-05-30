@@ -179,7 +179,7 @@ function BoolValue({ value }: { value: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-[11px] font-mono font-semibold uppercase tracking-wide",
+        "inline-flex items-center gap-1 text-xs font-mono font-semibold uppercase tracking-wide",
         value ? "text-emerald-400" : "text-foreground/30",
       )}
     >
@@ -195,9 +195,7 @@ function BoolValue({ value }: { value: boolean }) {
 }
 
 export function EmptyValue() {
-  return (
-    <span className="text-foreground/20 italic text-[11px] font-mono">—</span>
-  );
+  return <span className="text-foreground/20 italic text-xs font-mono">—</span>;
 }
 
 export function ScalarValue({ value, type }: { value: unknown; type: string }) {
@@ -206,7 +204,7 @@ export function ScalarValue({ value, type }: { value: unknown; type: string }) {
     return <BoolValue value={value} />;
   const color = VALUE_COLORS[type] ?? "text-foreground";
   return (
-    <span className={cn("text-[11px] truncate block font-mono", color)}>
+    <span className={cn("text-xs truncate block font-mono", color)}>
       {formatValue(value)}
     </span>
   );
@@ -272,9 +270,7 @@ export function ArrayContent({
 
   if (value.length === 0) {
     return (
-      <span className="text-foreground/20 italic text-[11px] font-mono">
-        empty
-      </span>
+      <span className="text-foreground/20 italic text-xs font-mono">empty</span>
     );
   }
 
@@ -316,7 +312,7 @@ export function ArrayContent({
                     depth={depth + 1}
                   />
                 ) : (
-                  <span className="text-[11px] text-foreground/60 font-mono truncate block leading-snug">
+                  <span className="text-xs text-foreground/60 font-mono truncate block leading-snug">
                     {formatValue(item)}
                   </span>
                 )}
@@ -345,7 +341,7 @@ export function InferredRow({
 
   return (
     <div className="flex items-start gap-2 px-2 py-1.5 rounded-lg hover:bg-white/4 transition-colors">
-      <span className="text-[11px] font-semibold text-foreground/70 whitespace-nowrap font-mono pt-px">
+      <span className="text-xs font-semibold text-foreground/70 whitespace-nowrap font-mono pt-px">
         {propKey}
       </span>
       <TypeTag type={type} />
@@ -358,7 +354,7 @@ export function InferredRow({
         ) : isArr ? (
           <ArrayContent value={value as unknown[]} depth={depth} />
         ) : (
-          <span className="text-[11px] text-foreground/60 font-mono truncate block leading-snug text-right">
+          <span className="text-xs text-foreground/60 font-mono truncate block leading-snug text-right">
             {formatValue(value)}
           </span>
         )}
