@@ -84,10 +84,12 @@ export function depthBorder(depth: number) {
   return DEPTH_BORDER[depth % DEPTH_BORDER.length];
 }
 
-export function inferType(value: unknown): string {
+export function inferType(value: unknown): PropSchema["type"] {
   if (value === null) return "null";
   if (Array.isArray(value)) return "array";
-  return typeof value;
+  if (typeof value === "bigint")
+    throw new Error(`inferType: bigint not supported`);
+  return typeof value as PropSchema["type"];
 }
 
 function formatValue(value: unknown): string {
