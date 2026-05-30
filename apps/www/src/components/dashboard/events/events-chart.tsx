@@ -62,7 +62,7 @@ const COLORS = [
   "#ef4444",
   "#06b6d4",
   "#ec4899",
-  "var(--chart-grid)",
+  "#787878",
 ];
 
 interface EventsChartProps {

@@ -42,8 +42,8 @@ export function EventsFilters({
         <SelectTrigger className="h-8 w-32 rounded-lg text-xs">
           <SelectValue />
         </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="">All types</SelectItem>
+        <SelectContent className="rounded-lg">
+          <SelectItem value="all">All types</SelectItem>
           <SelectItem value="pageview">Pageview</SelectItem>
           <SelectItem value="custom">Custom</SelectItem>
         </SelectContent>

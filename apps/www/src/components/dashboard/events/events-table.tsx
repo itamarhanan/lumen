@@ -2,7 +2,13 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, ChevronDown, ChevronUp } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
+import { format, parse } from "date-fns";
 
 interface EventRow {
   event_id: string;
@@ -42,7 +48,7 @@ function EventRow({
 
   return (
     <div className="group">
-      <div className="grid grid-cols-[1fr_auto_auto_2rem] gap-3 px-4 py-2.5 text-xs items-center border-b border-border/50 dark:border-white/[0.04] hover:bg-white/[0.02] transition-colors">
+      <div className="grid grid-cols-[1fr_auto_auto_2rem] gap-3 px-4 py-2.5 text-xs items-center border-b border-border/50 dark:border-white/4 hover:bg-white/2 transition-colors">
         <div className="flex items-center gap-2 min-w-0">
           <span
             className={`inline-block size-1.5 rounded-full shrink-0 ${
@@ -56,8 +62,23 @@ function EventRow({
           <span className="font-medium truncate">{event.event_name}</span>
         </div>
 
-        <span className="text-foreground/40 whitespace-nowrap font-mono text-[10px]">
-          {event.timestamp}
+        <span
+          className="text-foreground/40 whitespace-nowrap font-mono text-[10px]"
+          title={event.timestamp}
+        >
+          {(() => {
+            try {
+              return format(
+                parse(event.timestamp, "yyyy-MM-dd HH:mm:ss.SSS", new Date()),
+                "MMM d, HH:mm",
+              );
+            } catch {
+              return format(
+                parse(event.timestamp, "yyyy-MM-dd HH:mm:ss", new Date()),
+                "MMM d, HH:mm",
+              );
+            }
+          })()}
         </span>
 
         <button
@@ -77,7 +98,7 @@ function EventRow({
       </div>
 
       {expanded && (
-        <div className="px-4 py-2 bg-white/[0.01] border-b border-border/50 dark:border-white/[0.04]">
+        <div className="px-4 py-2 bg-white/1 border-b border-border/50 dark:border-white/4">
           <pre className="text-[10px] text-foreground/50 overflow-x-auto max-h-40">
             {propsDisplay}
           </pre>
@@ -130,7 +151,7 @@ export function EventsTable({
         ))}
       </div>
 
-      <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-border/50 dark:border-white/[0.04]">
+      <div className="flex items-center justify-center gap-2 px-4 py-3 border-t border-border/50 dark:border-white/4">
         <Button
           variant="ghost"
           size="sm"

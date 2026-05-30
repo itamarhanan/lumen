@@ -161,7 +161,7 @@ export const eventsRouter = t.router({
         ch.query<{
           person_id: string;
           project_id: string;
-          is_identified: string;
+          is_identified: number;
           properties: string;
           first_seen_at: string;
           updated_at: string;

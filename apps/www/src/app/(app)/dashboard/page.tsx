@@ -6,8 +6,8 @@ import { TopPages } from "@/components/dashboard/top-pages";
 import { LiveIndicator } from "@/components/dashboard/live-indicator";
 import { StatCard } from "@/components/dashboard/stat-card";
 import { QuickActions } from "@/components/dashboard/quick-actions";
-import { useMemo } from "react";
-import { TrendingUp, TrendingDown } from "lucide-react";
+import { useMemo, useState } from "react";
+import { TrendingUp, TrendingDown, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { trpc } from "@/lib/trpc/client";
 import { useDashboardStore } from "@/lib/store/dashboard";
@@ -22,12 +22,14 @@ export default function OverviewPage() {
   const firstSite = sites?.[0];
 
   const projectId = storeProjectId ?? firstSite?.id ?? "";
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const from = useMemo(
     () => format(subDays(new Date(), storeDateRange.days), "yyyy-MM-dd"),
     [storeDateRange.days],
   );
-  const to = useMemo(() => new Date().toISOString(), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const to = useMemo(() => new Date().toISOString(), [refreshKey]);
 
   const enabled = !!projectId;
 
@@ -70,7 +72,18 @@ export default function OverviewPage() {
             Analytics dashboard &middot; {storeDateRange.label}
           </p>
         </div>
-        <LiveIndicator count={live} />
+        <div className="flex items-center gap-2">
+          <LiveIndicator count={live} />
+          <button
+            onClick={() => {
+              setRefreshKey((k) => k + 1);
+            }}
+            className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors"
+          >
+            <RefreshCw size={12} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6 px-4 py-6 sm:px-6">

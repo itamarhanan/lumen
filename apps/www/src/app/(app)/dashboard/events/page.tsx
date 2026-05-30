@@ -19,16 +19,19 @@ export default function EventsPage() {
 
   const projectId = storeProjectId ?? firstSite?.id ?? "";
 
+  const [refreshKey, setRefreshKey] = useState(0);
+
   const from = useMemo(
     () => format(subDays(new Date(), storeDateRange.days), "yyyy-MM-dd"),
     [storeDateRange.days],
   );
-  const to = useMemo(() => new Date().toISOString(), []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const to = useMemo(() => new Date().toISOString(), [refreshKey]);
 
   const enabled = !!projectId;
 
   const [eventNameFilter, setEventNameFilter] = useState("");
-  const [eventTypeFilter, setEventTypeFilter] = useState("");
+  const [eventTypeFilter, setEventTypeFilter] = useState("all");
   const [propKey, setPropKey] = useState("");
   const [propValue, setPropValue] = useState("");
   const [selectedEventName, setSelectedEventName] = useState<string | null>(null);
@@ -54,7 +57,7 @@ export default function EventsPage() {
       to,
       cursor: currentCursor,
       limit: 25,
-      eventType: eventTypeFilter || undefined,
+      eventType: eventTypeFilter !== "all" ? eventTypeFilter : undefined,
       eventName: eventNameFilter || selectedEventName || undefined,
       propertyFilters,
     },
@@ -97,8 +100,7 @@ export default function EventsPage() {
         </div>
         <button
           onClick={() => {
-            distribution.refetch();
-            eventList.refetch();
+            setRefreshKey((k) => k + 1);
           }}
           className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors"
         >
