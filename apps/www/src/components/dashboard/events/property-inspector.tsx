@@ -23,7 +23,7 @@ export interface PropSchema {
 
 export type PropsSchema = Record<string, PropSchema>;
 
-export const TYPE_META: Record<
+const TYPE_META: Record<
   string,
   { icon: React.ReactNode; label: string; classes: string }
 > = {
@@ -90,7 +90,7 @@ export function inferType(value: unknown): string {
   return typeof value;
 }
 
-export function formatValue(value: unknown): string {
+function formatValue(value: unknown): string {
   if (value === null) return "null";
   if (typeof value === "boolean") return String(value);
   if (typeof value === "number") return String(value);
@@ -119,7 +119,7 @@ export function SectionLabel({
   );
 }
 
-export function ObjectPreview({ value }: { value: Record<string, unknown> }) {
+function ObjectPreview({ value }: { value: Record<string, unknown> }) {
   const keys = Object.keys(value).slice(0, 4);
   const overflow = Object.keys(value).length - keys.length;
   return (
@@ -139,7 +139,7 @@ export function ObjectPreview({ value }: { value: Record<string, unknown> }) {
   );
 }
 
-export function ArrayPreview({ value }: { value: unknown[] }) {
+function ArrayPreview({ value }: { value: unknown[] }) {
   if (value.length === 0)
     return (
       <span className="text-foreground/25 italic text-xs font-mono">empty</span>
@@ -219,7 +219,7 @@ export function MissingBadge() {
   );
 }
 
-export function ObjectContent({
+function ObjectContent({
   value,
   depth = 0,
 }: {
