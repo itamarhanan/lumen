@@ -10,7 +10,8 @@ import {
   type ClickHouseClient,
 } from "@lumen/clickhouse";
 import { UAParser } from "ua-parser-js";
-import * as geoip from "geoip-lite";
+import * as geoipModule from "geoip-lite";
+const geoip = geoipModule.default ?? geoipModule;
 import express from "express";
 
 function requireEnv(key: string): string {
@@ -24,7 +25,7 @@ const REDIS_PORT = parseInt(requireEnv("REDIS_PORT"), 10);
 const REDIS_PASSWORD = process.env.REDIS_PASSWORD;
 const CLICKHOUSE_URL = requireEnv("CLICKHOUSE_URL");
 const CLICKHOUSE_USER = requireEnv("CLICKHOUSE_USER");
-const CLICKHOUSE_PASSWORD = requireEnv("CLICKHOUSE_PASSWORD");
+const CLICKHOUSE_PASSWORD = process.env.CLICKHOUSE_PASSWORD;
 const CLICKHOUSE_DB = requireEnv("CLICKHOUSE_DB");
 const REDIS_STREAM = requireEnv("REDIS_STREAM");
 const REDIS_CONSUMER_GROUP = requireEnv("REDIS_CONSUMER_GROUP");
@@ -160,18 +161,33 @@ function toRow(envelope: RedisEnvelope): PendingEntry["row"] {
 
 async function handleIdentifyEvent(envelope: RedisEnvelope) {
   const { raw } = envelope;
+  const personId = raw.personId ?? raw.visitorId;
 
   const now = new Date(raw.timestamp)
     .toISOString()
     .slice(0, 23)
     .replace("T", " ");
 
+  let existingFirstSeen: string | null = null;
+  try {
+    const existing = await clickhouse.query<{ first_seen_at: string }>(
+      `SELECT first_seen_at FROM ${CLICKHOUSE_DB}.person_profiles FINAL
+       WHERE project_id = {projectId: String} AND person_id = {personId: String}`,
+      { projectId: raw.siteId, personId },
+    );
+    if (existing.length > 0) {
+      existingFirstSeen = existing[0]!.first_seen_at;
+    }
+  } catch (err) {
+    console.error("identify lookup failed:", err);
+  }
+
   const profileRow = {
-    person_id: raw.personId ?? raw.visitorId,
+    person_id: personId,
     project_id: raw.siteId,
     is_identified: 1,
     properties: JSON.stringify(raw.properties ?? {}),
-    first_seen_at: now,
+    first_seen_at: existingFirstSeen ?? now,
     updated_at: now,
   };
 
@@ -282,7 +298,10 @@ async function main() {
   });
 
   try {
-    geoip.lookup("8.8.8.8");
+    geoipAvailable = geoip.lookup("8.8.8.8") !== null;
+    if (!geoipAvailable) {
+      console.warn("GeoIP database returned empty result — geo enrichment disabled");
+    }
   } catch {
     console.warn("GeoIP database not available — geo enrichment disabled");
     geoipAvailable = false;

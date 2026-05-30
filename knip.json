@@ -7,7 +7,6 @@
       "ignoreDependencies": [
         "@base-ui/react",
         "cmdk",
-        "date-fns",
         "embla-carousel-react",
         "input-otp",
         "postcss",
@@ -44,7 +43,6 @@
   },
   "ignore": [
     "apps/www/src/components/ui/**",
-    "apps/www/src/hooks/use-mobile.ts",
     "packages/config/tsconfig.www.json"
   ],
   "ignoreDependencies": [
