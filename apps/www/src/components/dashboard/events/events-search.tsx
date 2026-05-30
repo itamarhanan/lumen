@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Search, X } from "lucide-react";
 
 interface EventsSearchProps {
@@ -16,6 +16,10 @@ export function EventsSearch({
 }: EventsSearchProps) {
   const [local, setLocal] = useState(value);
   const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
+
+  useEffect(() => {
+    return () => clearTimeout(timer.current);
+  }, []);
 
   const handleChange = (v: string) => {
     setLocal(v);

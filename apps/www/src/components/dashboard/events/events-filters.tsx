@@ -112,7 +112,6 @@ export function EventsFilters({
   const isMobile = useIsMobile();
   const [open, setOpen] = useState(false);
 
-
   const propertyFields = useMemo(
     () => mergeSchemaProperties(schemas),
     [schemas],

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, useCallback } from "react";
+import { useMemo, useState, useCallback, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { trpc } from "@/lib/trpc/client";
 import { useDashboardStore } from "@/lib/store/dashboard";
@@ -31,14 +31,13 @@ export default function EventsPage() {
     { enabled: !!projectId },
   );
 
-  const [refreshKey, setRefreshKey] = useState(0);
+  const [, setRefreshKey] = useState(0);
 
   const from = useMemo(
     () => format(subDays(new Date(), storeDateRange.days), "yyyy-MM-dd"),
     [storeDateRange.days],
   );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const to = useMemo(() => new Date().toISOString(), [refreshKey]);
+  const to = useMemo(() => new Date().toISOString(), []);
 
   const enabled = !!projectId;
 
@@ -182,98 +181,100 @@ export default function EventsPage() {
   }, []);
 
   return (
-    <div className="flex flex-col w-full">
-      <div className="flex items-center justify-between gap-4 px-4 pt-5 pb-3 sm:px-6 border-b border-border dark:border-[oklch(0.15_0_0)]">
-        <div className="min-w-0">
-          <h1 className="text-2xl font-light tracking-tight text-foreground leading-none">
-            Events
-          </h1>
-          <p className="mt-1 text-xs text-foreground/30 truncate">
-            Raw event feed &middot; {storeDateRange.label}
-          </p>
-        </div>
-        <button
-          onClick={() => {
-            setRefreshKey((k) => k + 1);
-          }}
-          className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors"
-        >
-          <RefreshCw size={12} />
-          Refresh
-        </button>
-      </div>
-
-      <div className="flex flex-col gap-6 px-4 py-6 sm:px-6">
-        <EventsChart
-          data={distribution.data ?? []}
-          loading={distribution.isLoading}
-          onSegmentClick={handleChartSegmentClick}
-        />
-
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground/35">
-                Event Feed
-              </p>
-              {personFilter && (
-                <button
-                  onClick={clearPersonFilter}
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono text-foreground/60 bg-white/5 hover:bg-white/10 transition-colors"
-                >
-                  Person: {personFilter.slice(0, 8)}&hellip;
-                  <X className="size-3" />
-                </button>
-              )}
-            </div>
+    <Suspense fallback={null}>
+      <div className="flex flex-col w-full">
+        <div className="flex items-center justify-between gap-4 px-4 pt-5 pb-3 sm:px-6 border-b border-border dark:border-[oklch(0.15_0_0)]">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-light tracking-tight text-foreground leading-none">
+              Events
+            </h1>
+            <p className="mt-1 text-xs text-foreground/30 truncate">
+              Raw event feed &middot; {storeDateRange.label}
+            </p>
           </div>
+          <button
+            onClick={() => {
+              setRefreshKey((k) => k + 1);
+            }}
+            className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors"
+          >
+            <RefreshCw size={12} />
+            Refresh
+          </button>
+        </div>
 
-          <div className="flex items-start gap-2 flex-wrap">
-            <EventsSearch value={searchQuery} onChange={handleSearchChange} />
-            <EventsFilters
-              filters={filters}
-              schemas={schemas ?? []}
-              onFiltersChange={handleFiltersChange}
+        <div className="flex flex-col gap-6 px-4 py-6 sm:px-6">
+          <EventsChart
+            data={distribution.data ?? []}
+            loading={distribution.isLoading}
+            onSegmentClick={handleChartSegmentClick}
+          />
+
+          <div className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <p className="text-xs font-semibold uppercase tracking-[0.15em] text-foreground/35">
+                  Event Feed
+                </p>
+                {personFilter && (
+                  <button
+                    onClick={clearPersonFilter}
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-mono text-foreground/60 bg-white/5 hover:bg-white/10 transition-colors"
+                  >
+                    Person: {personFilter.slice(0, 8)}&hellip;
+                    <X className="size-3" />
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-start gap-2 flex-wrap">
+              <EventsSearch value={searchQuery} onChange={handleSearchChange} />
+              <EventsFilters
+                filters={filters}
+                schemas={schemas ?? []}
+                onFiltersChange={handleFiltersChange}
+              />
+            </div>
+
+            <EventsTable
+              events={events}
+              loading={eventList.isLoading}
+              hasMore={hasMore}
+              onNext={handleNext}
+              onPrev={handlePrev}
+              onPersonClick={handlePersonClick}
+              onPropertiesClick={handlePropertiesClick}
+              onEventClick={handleEventRowClick}
             />
           </div>
-
-          <EventsTable
-            events={events}
-            loading={eventList.isLoading}
-            hasMore={hasMore}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            onPersonClick={handlePersonClick}
-            onPropertiesClick={handlePropertiesClick}
-            onEventClick={handleEventRowClick}
-          />
         </div>
+
+        {drawerPersonId && (
+          <PersonDrawer
+            projectId={projectId}
+            personId={drawerPersonId}
+            open={!!drawerPersonId}
+            onOpenChange={(open) => {
+              if (!open) setDrawerPersonId(null);
+            }}
+            onEventClick={handleEventClick}
+            onViewAllEvents={handleViewAllEvents}
+          />
+        )}
+
+        {drawerEvent && (
+          <PropertyDrawer
+            projectId={projectId}
+            eventName={drawerEvent.eventName}
+            properties={drawerEvent.properties}
+            open={!!drawerEvent}
+            onOpenChange={(open) => {
+              if (!open) setDrawerEvent(null);
+            }}
+          />
+        )}
       </div>
-
-      {drawerPersonId && (
-        <PersonDrawer
-          projectId={projectId}
-          personId={drawerPersonId}
-          open={!!drawerPersonId}
-          onOpenChange={(open) => {
-            if (!open) setDrawerPersonId(null);
-          }}
-          onEventClick={handleEventClick}
-          onViewAllEvents={handleViewAllEvents}
-        />
-      )}
-
-      {drawerEvent && (
-        <PropertyDrawer
-          projectId={projectId}
-          eventName={drawerEvent.eventName}
-          properties={drawerEvent.properties}
-          open={!!drawerEvent}
-          onOpenChange={(open) => {
-            if (!open) setDrawerEvent(null);
-          }}
-        />
-      )}
-    </div>
+    </Suspense>
   );
 }

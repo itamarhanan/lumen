@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 export interface PropSchema {
-  type: "string" | "number" | "boolean" | "date" | "object" | "array";
+  type: "string" | "number" | "boolean" | "date" | "object" | "array" | "null";
   required?: boolean;
   description?: string;
   properties?: Record<string, PropSchema>;

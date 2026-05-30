@@ -101,6 +101,7 @@ export const eventsRouter = t.router({
               params[valParam] = Number(f.value);
             } else if (f.fieldType === "boolean") {
               fieldExpr = `JSONExtractBool(properties, {${keyParam}: String})`;
+              params[valParam] = f.value === "true" ? 1 : 0;
             } else {
               fieldExpr = `JSONExtractString(properties, {${keyParam}: String})`;
               params[valParam] = f.value;
@@ -112,7 +113,8 @@ export const eventsRouter = t.router({
             f.field === "event_type" ||
             f.field === "person_id";
           const isNumberField = f.fieldType === "number" && !isBuiltin;
-          const valType = isNumberField ? "Float64" : "String";
+          const isBoolField = f.fieldType === "boolean" && !isBuiltin;
+          const valType = isNumberField ? "Float64" : isBoolField ? "UInt8" : "String";
 
           let condition: string;
           switch (f.operator) {

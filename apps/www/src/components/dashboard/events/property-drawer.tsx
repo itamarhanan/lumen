@@ -157,7 +157,7 @@ function RawKeyValueList({ data }: { data: Record<string, unknown> }) {
         <SchemaPropRow
           key={k}
           propKey={k}
-          schema={{ type: inferType(v) as PropSchema["type"] }}
+          schema={{ type: inferType(v) }}
           value={v}
         />
       ))}
@@ -280,7 +280,7 @@ export function PropertyDrawer({
                       key={k}
                       propKey={k}
                       schema={{
-                        type: inferType(parsed[k]) as PropSchema["type"],
+                        type: inferType(parsed[k]),
                       }}
                       value={parsed[k]}
                     />

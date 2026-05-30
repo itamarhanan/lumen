@@ -28,7 +28,6 @@ export default function OverviewPage() {
     () => format(subDays(new Date(), storeDateRange.days), "yyyy-MM-dd"),
     [storeDateRange.days],
   );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const to = useMemo(() => new Date().toISOString(), [refreshKey]);
 
   const enabled = !!projectId;
