@@ -1,12 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import {
-  formatDistanceToNow,
-  parse,
-  differenceInHours,
-  format,
-} from "date-fns";
+import { formatEventTime } from "@/lib/date";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, ArrowUpRight } from "lucide-react";
 
@@ -31,19 +26,6 @@ interface EventsTableProps {
   onPersonClick: (personId: string) => void;
   onPropertiesClick: (event: EventRow) => void;
   onEventClick?: (event: EventRow) => void;
-}
-
-function formatTime(ts: string): string {
-  try {
-    const parsed = parse(ts.slice(0, 19), "yyyy-MM-dd HH:mm:ss", new Date());
-    const hoursDiff = differenceInHours(new Date(), parsed);
-    if (hoursDiff < 24) {
-      return formatDistanceToNow(parsed, { addSuffix: true });
-    }
-    return format(parsed, "MMM d, HH:mm");
-  } catch {
-    return ts;
-  }
 }
 
 export function EventsTable({
@@ -135,7 +117,7 @@ export function EventsTable({
                   className="px-4 py-3 text-foreground/40 whitespace-nowrap tabular-nums"
                   title={event.timestamp}
                 >
-                  {formatTime(event.timestamp)}
+                  {formatEventTime(event.timestamp)}
                 </td>
                 <td className="px-4 py-3">
                   <button

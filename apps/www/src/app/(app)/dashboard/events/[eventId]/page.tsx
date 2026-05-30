@@ -10,25 +10,7 @@ import {
   EmptyValue,
 } from "@/components/dashboard/events/property-inspector";
 import { ArrowLeft } from "lucide-react";
-import {
-  formatDistanceToNow,
-  parse,
-  differenceInHours,
-  format,
-} from "date-fns";
-
-function formatTime(ts: string): string {
-  try {
-    const parsed = parse(ts.slice(0, 19), "yyyy-MM-dd HH:mm:ss", new Date());
-    const hoursDiff = differenceInHours(new Date(), parsed);
-    if (hoursDiff < 24) {
-      return formatDistanceToNow(parsed, { addSuffix: true });
-    }
-    return format(parsed, "MMM d, yyyy HH:mm");
-  } catch {
-    return ts;
-  }
-}
+import { formatEventTime } from "@/lib/date";
 
 const TYPE_DOT: Record<string, string> = {
   pageview: "bg-primary",
@@ -172,7 +154,7 @@ export default function EventDetailPage() {
       <div className="p-4 sm:p-6 space-y-6 max-w-2xl">
         <div className="rounded-xl bg-muted dark:bg-white/4 divide-y divide-border/50 dark:divide-white/5 overflow-hidden">
           <MetaCard label="Type" value={event.event_type} />
-          <MetaCard label="Timestamp" value={formatTime(event.timestamp)} />
+          <MetaCard label="Timestamp" value={formatEventTime(event.timestamp, "MMM d, yyyy HH:mm")} />
           <MetaCard
             label="Person"
             value={event.person_id}

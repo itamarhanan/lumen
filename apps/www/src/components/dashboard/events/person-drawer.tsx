@@ -12,12 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc/client";
 import { ChevronRight } from "lucide-react";
 import { SectionLabel, InferredRow, EmptyValue } from "./property-inspector";
-import {
-  formatDistanceToNow,
-  parse,
-  differenceInHours,
-  format,
-} from "date-fns";
+import { formatEventTime } from "@/lib/date";
 
 interface PersonDrawerProps {
   projectId: string;
@@ -26,19 +21,6 @@ interface PersonDrawerProps {
   onOpenChange: (open: boolean) => void;
   onEventClick: (eventName: string, properties: string) => void;
   onViewAllEvents?: (personId: string) => void;
-}
-
-function formatTime(ts: string): string {
-  try {
-    const parsed = parse(ts.slice(0, 19), "yyyy-MM-dd HH:mm:ss", new Date());
-    const hoursDiff = differenceInHours(new Date(), parsed);
-    if (hoursDiff < 24) {
-      return formatDistanceToNow(parsed, { addSuffix: true });
-    }
-    return format(parsed, "MMM d, HH:mm");
-  } catch {
-    return ts;
-  }
 }
 
 const TYPE_DOT: Record<string, string> = {
@@ -65,9 +47,15 @@ export function PersonDrawer({
   const profileProperties = useMemo(() => {
     if (!data?.profile) return null;
 
-    const raw = data.profile.properties
-      ? (JSON.parse(data.profile.properties) as Record<string, unknown>)
-      : ({} as Record<string, unknown>);
+    let parsed: Record<string, unknown> = {};
+    try {
+      parsed = data.profile.properties
+        ? (JSON.parse(data.profile.properties) as Record<string, unknown>)
+        : {};
+    } catch {
+      parsed = {};
+    }
+    const raw = parsed;
 
     const merged = { ...raw };
 
@@ -192,7 +180,7 @@ export function PersonDrawer({
                           </span>
                         </div>
                         <span className="text-foreground/40 tabular-nums shrink-0 ml-3">
-                          {formatTime(event.timestamp)}
+                          {formatEventTime(event.timestamp)}
                         </span>
                       </button>
                     ))}
