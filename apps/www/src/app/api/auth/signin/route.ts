@@ -12,10 +12,12 @@ export async function POST(request: Request) {
 
     const supabase = await createClient();
 
+    const requestOrigin = new URL(request.url).origin;
+
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${new URL(request.url).origin}/api/auth/callback`,
+        redirectTo: `${requestOrigin}/api/auth/callback`,
       },
     });
 
@@ -23,7 +25,14 @@ export async function POST(request: Request) {
       return Response.json({ error: error.message }, { status: 400 });
     }
 
-    return Response.json({ url: data.url });
+    if (!data.url) {
+      return Response.json({ error: "No OAuth URL returned" }, { status: 500 });
+    }
+
+    const hostname = new URL(request.url).hostname;
+    const url = data.url.replace(/localhost|127\.0\.0\.1/g, hostname);
+
+    return Response.json({ url });
   } catch {
     return Response.json({ error: "Internal error" }, { status: 500 });
   }
