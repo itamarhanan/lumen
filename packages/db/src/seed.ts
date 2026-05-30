@@ -7,6 +7,19 @@ import * as schema from "./schema/index";
 const CH_URL = process.env.CLICKHOUSE_URL ?? "http://localhost:8123";
 const CH_DB = "lumen";
 
+const PUBLIC_IPS = [
+  "8.8.8.8",
+  "1.1.1.1",
+  "208.67.222.222",
+  "185.228.168.9",
+  "76.76.19.19",
+  "94.140.14.14",
+  "203.0.113.1",
+  "198.51.100.1",
+  "192.0.2.1",
+  "45.33.32.156",
+];
+
 const PATHS = [
   "/",
   "/blog",
@@ -140,11 +153,13 @@ async function seedClickhouse(projectId: string): Promise<number> {
       const isPageview = Math.random() < 0.65;
       const personId = personPool[Math.floor(Math.random() * personPool.length)]!;
 
+      const ip = PUBLIC_IPS[Math.floor(Math.random() * PUBLIC_IPS.length)]!;
+
       if (isPageview) {
         events.push({
           event_type: "pageview",
           event_name: "pageview",
-          properties: JSON.stringify({ url: path, title: path === "/" ? "Home" : path.replace("/", "") }),
+          properties: JSON.stringify({ url: path, title: path === "/" ? "Home" : path.replace("/", ""), ip }),
           person_id: personId,
           session_id: sessionId,
           project_id: projectId,
@@ -172,6 +187,7 @@ async function seedClickhouse(projectId: string): Promise<number> {
             props = {};
         }
 
+        props.ip = ip;
         events.push({
           event_type: "custom",
           event_name: customName,
