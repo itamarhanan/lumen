@@ -1,6 +1,7 @@
 import { createClient } from "@lumen/clickhouse";
 import { z } from "zod";
 import { authedProcedure, t } from "../init";
+import { normalizePath } from "@/lib/analytics/normalize-path";
 
 const ch = createClient({ database: "lumen" });
 
@@ -210,5 +211,117 @@ export const analyticsRouter = t.router({
         { project_id: input.projectId, from },
       );
       return Number(rows[0]?.count ?? 0);
+    }),
+
+  journeys: authedProcedure
+    .input(
+      z.object({
+        projectId: z.string(),
+        from: z.string(),
+        to: z.string(),
+        limit: z.number().int().positive().default(10_000),
+      }),
+    )
+    .query(async ({ input }) => {
+      const { projectId, limit } = input;
+      const from = toChDate(input.from);
+      const to = toChDate(input.to);
+
+      const [totalRows] = await ch.query<{ total: string }>(
+        `SELECT uniqExact(session_id) AS total
+         FROM lumen.events
+         WHERE project_id = {project_id: String}
+           AND event_type = 'pageview'
+           AND timestamp >= {from: String}
+           AND timestamp <= {to: String}`,
+        { project_id: projectId, from, to },
+      );
+      const total = Number(totalRows?.total ?? 0);
+
+      if (total === 0) {
+        return { transitions: [], sessions: [], total: 0 };
+      }
+
+      type SessionRow = {
+        session_id: string;
+        person_id: string;
+        urls: string[];
+        timestamps: string[];
+        started_at: string;
+        ended_at: string;
+        page_count: string;
+        browser: string;
+        device: string;
+        os: string;
+        country: string;
+      };
+
+      const rows = await ch.query<SessionRow>(
+        `SELECT
+           session_id,
+           any(person_id)                                                     AS person_id,
+           groupArray(JSONExtractString(properties, 'url') ORDER BY timestamp ASC) AS urls,
+           groupArray(timestamp ORDER BY timestamp ASC)                       AS timestamps,
+           min(timestamp)                                                     AS started_at,
+           max(timestamp)                                                     AS ended_at,
+           count()                                                            AS page_count,
+           any(JSONExtractString(properties, 'browser'))                      AS browser,
+           any(JSONExtractString(properties, 'device'))                       AS device,
+           any(JSONExtractString(properties, 'os'))                           AS os,
+           any(JSONExtractString(properties, 'geo_country'))                  AS country
+         FROM lumen.events
+         WHERE project_id = {project_id: String}
+           AND event_type = 'pageview'
+           AND timestamp >= {from: String}
+           AND timestamp <= {to: String}
+         GROUP BY session_id
+         ORDER BY started_at DESC
+         LIMIT {limit: UInt32}`,
+        { project_id: projectId, from, to, limit },
+      );
+
+      const sessions = rows.map((r) => {
+        const path = r.urls
+          .filter((u): u is string => u != null && u !== "")
+          .map(normalizePath);
+        const startedAt = r.started_at;
+        const endedAt = r.ended_at;
+        const durationSec = Math.round(
+          (new Date(endedAt).getTime() - new Date(startedAt).getTime()) / 1000,
+        );
+
+        return {
+          sessionId: r.session_id,
+          personId: r.person_id,
+          pages: Number(r.page_count),
+          duration: Math.max(0, durationSec),
+          startedAt,
+          entryPage: path[0] ?? "/",
+          exitPage: path[path.length - 1] ?? "/",
+          path,
+          browser: r.browser || null,
+          device: r.device || null,
+          os: r.os || null,
+          country: r.country || null,
+        };
+      });
+
+      const transitionCounts = new Map<string, number>();
+      for (const s of sessions) {
+        if (s.path.length < 2) continue;
+        for (let i = 0; i < s.path.length - 1; i++) {
+          const key = `${s.path[i]}\0${s.path[i + 1]}`;
+          transitionCounts.set(key, (transitionCounts.get(key) ?? 0) + 1);
+        }
+      }
+
+      const transitions = [...transitionCounts.entries()]
+        .map(([key, value]) => {
+          const sep = key.indexOf("\0");
+          return { source: key.slice(0, sep), target: key.slice(sep + 1), value };
+        })
+        .sort((a, b) => b.value - a.value);
+
+      return { transitions, sessions, total };
     }),
 });
