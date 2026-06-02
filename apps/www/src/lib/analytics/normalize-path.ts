@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const InputSchema = z.string().min(1, { message: "URL must not be empty" });
-const UuidSchema = z.string().uuid();
+const UuidSchema = z.uuid("v4");
 const NumericSchema = z.string().regex(/^\d+$/, { message: "Must be numeric" });
 const MAX_SEGMENTS = 5;
 
