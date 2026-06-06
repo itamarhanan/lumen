@@ -271,6 +271,7 @@ async function seed() {
   } else {
     console.log("No user found in public.users.");
     console.log("Please log in via OAuth first, then re-run seed.");
+    await close();
     return;
   }
 
