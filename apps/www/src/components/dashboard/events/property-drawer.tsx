@@ -63,7 +63,7 @@ function SchemaPropRow({
   return (
     <div
       className={cn(
-        "group rounded-lg border-l-2 transition-colors",
+        "group rounded-md border-l-2 transition-colors",
         isMissing
           ? "bg-rose-500/5 border-rose-500/20"
           : "border-transparent hover:border-foreground/10 hover:bg-white/6",
@@ -73,7 +73,7 @@ function SchemaPropRow({
         {isExpandable ? (
           <button
             onClick={() => setExpanded(!expanded)}
-            className="text-foreground/30 hover:text-foreground transition-colors cursor-pointer shrink-0"
+            className="text-foreground/30 hover:text-foreground transition-colors cursor-pointer shrink-0 pl-1"
           >
             {expanded ? (
               <ChevronDown className="size-3.5" />
