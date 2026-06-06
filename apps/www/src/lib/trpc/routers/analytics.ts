@@ -116,7 +116,11 @@ export const analyticsRouter = t.router({
            AND timestamp <= {to: String}
          GROUP BY date
          ORDER BY date ASC`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       return rows.map((r) => ({
@@ -150,7 +154,11 @@ export const analyticsRouter = t.router({
          GROUP BY path
          ORDER BY pageviews DESC
          LIMIT 10`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       return rows.map((r) => ({
@@ -188,7 +196,11 @@ export const analyticsRouter = t.router({
          GROUP BY name
          ORDER BY visitors DESC
          LIMIT 10`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       const total = rows.reduce((s, r) => s + Number(r.visitors), 0);
@@ -246,6 +258,7 @@ export const analyticsRouter = t.router({
         session_id: string;
         person_id: string;
         urls: string[];
+        timestamps: string[];
         started_at: string;
         ended_at: string;
         page_count: string;
@@ -260,6 +273,7 @@ export const analyticsRouter = t.router({
            session_id,
            any(person_id)                                                     AS person_id,
            groupArray(JSONExtractString(properties, 'url') ORDER BY timestamp ASC) AS urls,
+           groupArray(timestamp ORDER BY timestamp ASC)                       AS timestamps,
            min(timestamp)                                                     AS started_at,
            max(timestamp)                                                     AS ended_at,
            count()                                                            AS page_count,
@@ -279,9 +293,11 @@ export const analyticsRouter = t.router({
       );
 
       const sessions = rows.map((r) => {
-        const path = r.urls
-          .filter((u): u is string => u != null && u !== "")
-          .map(normalizePath);
+        const paired = r.urls
+          .map((url, i) => ({ url, ts: r.timestamps[i] }))
+          .filter((p): p is { url: string; ts: string } => p.url != null && p.url !== "");
+        const path = paired.map((p) => normalizePath(p.url));
+        const timestamps = paired.map((p) => p.ts);
         const startedAt = r.started_at;
         const endedAt = r.ended_at;
         const durationSec = Math.round(
@@ -297,6 +313,7 @@ export const analyticsRouter = t.router({
           entryPage: path[0] ?? "/",
           exitPage: path[path.length - 1] ?? "/",
           path,
+          timestamps,
           browser: r.browser || null,
           device: r.device || null,
           os: r.os || null,
@@ -316,7 +333,11 @@ export const analyticsRouter = t.router({
       const transitions = [...transitionCounts.entries()]
         .map(([key, value]) => {
           const sep = key.indexOf("\0");
-          return { source: key.slice(0, sep), target: key.slice(sep + 1), value };
+          return {
+            source: key.slice(0, sep),
+            target: key.slice(sep + 1),
+            value,
+          };
         })
         .sort((a, b) => b.value - a.value);
 

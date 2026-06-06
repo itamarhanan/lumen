@@ -37,7 +37,9 @@ export function aggregateSankey(transitions: RawTransition[]): SankeyData {
     .map(([name]) => name);
 
   const topSet = new Set(sorted.slice(0, TOP_N));
-  const hasOther = sorted.length > TOP_N;
+  const hasOther = transitions.some(
+    (t) => !topSet.has(t.source) || !topSet.has(t.target),
+  );
 
   const nodeIdx = new Map<string, number>();
   let idx = 0;
