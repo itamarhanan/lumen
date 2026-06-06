@@ -246,7 +246,6 @@ export const analyticsRouter = t.router({
         session_id: string;
         person_id: string;
         urls: string[];
-        timestamps: string[];
         started_at: string;
         ended_at: string;
         page_count: string;
@@ -261,7 +260,6 @@ export const analyticsRouter = t.router({
            session_id,
            any(person_id)                                                     AS person_id,
            groupArray(JSONExtractString(properties, 'url') ORDER BY timestamp ASC) AS urls,
-           groupArray(timestamp ORDER BY timestamp ASC)                       AS timestamps,
            min(timestamp)                                                     AS started_at,
            max(timestamp)                                                     AS ended_at,
            count()                                                            AS page_count,
