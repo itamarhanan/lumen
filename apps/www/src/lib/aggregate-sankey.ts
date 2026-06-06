@@ -1,28 +1,30 @@
-interface Transition {
+export interface Transition {
   source: string;
   target: string;
   value: number;
 }
 
-interface SankeyNode {
+export interface SankeyNode {
   name: string;
 }
 
-interface SankeyLink {
+export interface SankeyLink {
   source: number;
   target: number;
   value: number;
 }
 
-interface SankeyData {
+export interface SankeyData {
   nodes: SankeyNode[];
   links: SankeyLink[];
 }
 
 export function aggregateSankey(
-  transitions: Transition[],
+  transitions: readonly Transition[],
   maxNodes = 20,
 ): SankeyData {
+  const effectiveMax = Math.max(1, maxNodes);
+
   if (transitions.length === 0) {
     return { nodes: [], links: [] };
   }
@@ -37,18 +39,20 @@ export function aggregateSankey(
     .sort((a, b) => b[1] - a[1])
     .map(([name]) => name);
 
-  if (sorted.length <= maxNodes) {
+  if (sorted.length <= effectiveMax) {
     const nodes = sorted.map((name) => ({ name }));
     const nameToIdx = new Map(nodes.map((n, i) => [n.name, i]));
-    const links = transitions.map((t) => ({
-      source: nameToIdx.get(t.source)!,
-      target: nameToIdx.get(t.target)!,
-      value: t.value,
-    }));
+    const links = transitions
+      .map((t) => ({
+        source: nameToIdx.get(t.source)!,
+        target: nameToIdx.get(t.target)!,
+        value: t.value,
+      }))
+      .filter((l) => l.source !== l.target);
     return { nodes, links };
   }
 
-  const top = new Set(sorted.slice(0, maxNodes));
+  const top = new Set(sorted.slice(0, effectiveMax));
   const nodes = [...top].map((name) => ({ name }));
   nodes.push({ name: "Other" });
   const otherIdx = nodes.length - 1;
@@ -61,9 +65,9 @@ export function aggregateSankey(
 
   const linkMap = new Map<string, number>();
   for (const t of transitions) {
-    const s = top.has(t.source) ? t.source : "Other";
-    const tgt = top.has(t.target) ? t.target : "Other";
-    const key = `${nameToIdx.get(s)}:${nameToIdx.get(tgt)}`;
+    const source = top.has(t.source) ? t.source : "Other";
+    const target = top.has(t.target) ? t.target : "Other";
+    const key = `${nameToIdx.get(source)}:${nameToIdx.get(target)}`;
     linkMap.set(key, (linkMap.get(key) ?? 0) + t.value);
   }
 
@@ -77,5 +81,6 @@ export function aggregateSankey(
     });
   }
 
-  return { nodes, links };
+  const filtered = links.filter((l) => l.source !== l.target);
+  return { nodes, links: filtered };
 }
