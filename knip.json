@@ -43,7 +43,8 @@
     "apps/www/src/components/dashboard/journeys/flow-sankey.tsx",
     "apps/www/src/lib/analytics/normalize-path.ts",
     "apps/www/src/lib/analytics/aggregate-sankey.ts",
-    "apps/www/src/components/dashboard/journeys/path-nodes.tsx"
+    "apps/www/src/components/dashboard/journeys/path-nodes.tsx",
+    "apps/www/src/components/dashboard/journeys/sessions-list.tsx"
   ],
   "ignoreDependencies": [
     "supabase",
