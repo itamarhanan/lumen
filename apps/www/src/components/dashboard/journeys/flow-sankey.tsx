@@ -190,7 +190,7 @@ export function FlowSankey({ data, loading, error, onRetry }: ComProps) {
       </div>
 
       <div className="overflow-x-auto">
-        <div className="min-w-[600px]">
+        <div className="min-w-150">
           <ResponsiveContainer width="100%" height={420}>
             <Sankey
               data={chartData}

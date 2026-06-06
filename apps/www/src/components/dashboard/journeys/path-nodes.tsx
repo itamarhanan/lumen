@@ -7,6 +7,9 @@ interface PathNodesProps {
   timestamps?: string[];
 }
 
+const DRAG_THRESHOLD = 5;
+const DRAG_MULTIPLIER = 1.5;
+
 export function PathNodes({ path }: PathNodesProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const isDragging = useRef(false);
@@ -25,8 +28,8 @@ export function PathNodes({ path }: PathNodesProps) {
     if (!isDragging.current) return;
     e.preventDefault();
     const x = e.pageX - (containerRef.current?.offsetLeft ?? 0);
-    const walk = (x - startX.current) * 1.5;
-    if (Math.abs(walk) > 5) dragged.current = true;
+    const walk = (x - startX.current) * DRAG_MULTIPLIER;
+    if (Math.abs(walk) > DRAG_THRESHOLD) dragged.current = true;
     if (containerRef.current) {
       containerRef.current.scrollLeft = scrollLeft.current - walk;
     }
@@ -41,8 +44,7 @@ export function PathNodes({ path }: PathNodesProps) {
     if (!touch) return;
     isDragging.current = true;
     dragged.current = false;
-    startX.current =
-      touch.pageX - (containerRef.current?.offsetLeft ?? 0);
+    startX.current = touch.pageX - (containerRef.current?.offsetLeft ?? 0);
     scrollLeft.current = containerRef.current?.scrollLeft ?? 0;
   }, []);
 
@@ -50,10 +52,9 @@ export function PathNodes({ path }: PathNodesProps) {
     if (!isDragging.current) return;
     const touch = e.touches[0];
     if (!touch) return;
-    const x =
-      touch.pageX - (containerRef.current?.offsetLeft ?? 0);
-    const walk = (x - startX.current) * 1.5;
-    if (Math.abs(walk) > 5) dragged.current = true;
+    const x = touch.pageX - (containerRef.current?.offsetLeft ?? 0);
+    const walk = (x - startX.current) * DRAG_MULTIPLIER;
+    if (Math.abs(walk) > DRAG_THRESHOLD) dragged.current = true;
     if (containerRef.current) {
       containerRef.current.scrollLeft = scrollLeft.current - walk;
     }
@@ -93,7 +94,7 @@ export function PathNodes({ path }: PathNodesProps) {
           )}
           <span
             title={page}
-            className="rounded-xl bg-muted px-3 py-1.5 text-xs font-mono text-foreground/80 max-w-[180px] truncate shrink-0"
+            className="rounded-xl bg-muted px-3 py-1.5 text-xs font-mono text-foreground/80 max-w-45 truncate shrink-0"
           >
             {page}
           </span>
