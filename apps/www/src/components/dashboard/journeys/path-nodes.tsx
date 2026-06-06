@@ -1,90 +1,105 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useRef, useCallback } from "react";
 
 interface PathNodesProps {
-  pages: string[];
+  path: string[];
+  timestamps?: string[];
 }
 
-export function PathNodes({ pages }: PathNodesProps) {
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(true);
+const DRAG_THRESHOLD = 5;
+const DRAG_MULTIPLIER = 1.5;
 
-  const updateScrollState = useCallback(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    setCanScrollLeft(el.scrollLeft > 0);
-    setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+export function PathNodes({ path }: PathNodesProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const isDragging = useRef(false);
+  const startX = useRef(0);
+  const scrollLeft = useRef(0);
+  const dragged = useRef(false);
+
+  const onMouseDown = useCallback((e: React.MouseEvent) => {
+    isDragging.current = true;
+    dragged.current = false;
+    startX.current = e.pageX - (containerRef.current?.offsetLeft ?? 0);
+    scrollLeft.current = containerRef.current?.scrollLeft ?? 0;
   }, []);
 
-  const scroll = useCallback((dir: "left" | "right") => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const amount = 200;
-    el.scrollBy({
-      left: dir === "left" ? -amount : amount,
-      behavior: "smooth",
-    });
-    setTimeout(updateScrollState, 150);
-  }, [updateScrollState]);
+  const onMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging.current) return;
+    e.preventDefault();
+    const x = e.pageX - (containerRef.current?.offsetLeft ?? 0);
+    const walk = (x - startX.current) * DRAG_MULTIPLIER;
+    if (Math.abs(walk) > DRAG_THRESHOLD) dragged.current = true;
+    if (containerRef.current) {
+      containerRef.current.scrollLeft = scrollLeft.current - walk;
+    }
+  }, []);
 
-  if (pages.length === 0) {
-    return (
-      <span className="text-xs text-foreground/30 italic">No pages</span>
-    );
-  }
+  const onMouseUp = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    if (!touch) return;
+    isDragging.current = true;
+    dragged.current = false;
+    startX.current = touch.pageX - (containerRef.current?.offsetLeft ?? 0);
+    scrollLeft.current = containerRef.current?.scrollLeft ?? 0;
+  }, []);
+
+  const onTouchMove = useCallback((e: React.TouchEvent) => {
+    if (!isDragging.current) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const x = touch.pageX - (containerRef.current?.offsetLeft ?? 0);
+    const walk = (x - startX.current) * DRAG_MULTIPLIER;
+    if (Math.abs(walk) > DRAG_THRESHOLD) dragged.current = true;
+    if (containerRef.current) {
+      containerRef.current.scrollLeft = scrollLeft.current - walk;
+    }
+  }, []);
+
+  const onTouchEnd = useCallback(() => {
+    isDragging.current = false;
+  }, []);
+
+  const handleClick = useCallback((e: React.MouseEvent) => {
+    if (dragged.current) {
+      e.stopPropagation();
+    }
+  }, []);
+
+  if (path.length === 0) return null;
 
   return (
-    <div className="relative">
-      {canScrollLeft && (
-        <button
-          onClick={() => scroll("left")}
-          className="absolute left-0 top-1/2 -translate-y-1/2 z-10 size-5 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors"
-          aria-label="Scroll left"
-        >
-          <ChevronLeft size={10} />
-        </button>
-      )}
-
-      <div
-        ref={scrollRef}
-        onScroll={updateScrollState}
-        className="flex items-center gap-1.5 overflow-x-auto scroll-smooth no-scrollbar py-1"
-      >
-        {pages.map((page, i) => (
-          <span key={`${page}-${i}`} className="flex items-center gap-1.5 shrink-0">
-            <span className="inline-flex items-center rounded-md bg-black/5 dark:bg-white/8 px-2 py-0.5 font-mono text-[11px] text-foreground/70 whitespace-nowrap leading-5">
-              {page}
+    <div
+      ref={containerRef}
+      className="overflow-x-auto flex items-center gap-0 cursor-grab active:cursor-grabbing select-none"
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseUp={onMouseUp}
+      onMouseLeave={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
+      onClick={handleClick}
+    >
+      {path.map((page, i) => (
+        <div key={i} className="flex items-center gap-0 shrink-0">
+          {i > 0 && (
+            <span className="mx-1.5 text-foreground/30 text-xs shrink-0">
+              →
             </span>
-            {i < pages.length - 1 && (
-              <span className="text-foreground/20 shrink-0">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
-                  <path d="M5 12h14M13 5l7 7-7 7" />
-                </svg>
-              </span>
-            )}
+          )}
+          <span
+            title={page}
+            className="rounded-xl bg-muted px-3 py-1.5 text-xs font-mono text-foreground/80 max-w-45 truncate shrink-0"
+          >
+            {page}
           </span>
-        ))}
-      </div>
-
-      {canScrollRight && (
-        <button
-          onClick={() => scroll("right")}
-          className="absolute right-0 top-1/2 -translate-y-1/2 z-10 size-5 rounded-full bg-background border border-border flex items-center justify-center hover:bg-muted transition-colors"
-          aria-label="Scroll right"
-        >
-          <ChevronRight size={10} />
-        </button>
-      )}
+        </div>
+      ))}
     </div>
   );
 }
