@@ -293,9 +293,11 @@ export const analyticsRouter = t.router({
       );
 
       const sessions = rows.map((r) => {
-        const path = r.urls
-          .filter((u): u is string => u != null && u !== "")
-          .map(normalizePath);
+        const paired = r.urls
+          .map((url, i) => ({ url, ts: r.timestamps[i] }))
+          .filter((p): p is { url: string; ts: string } => p.url != null && p.url !== "");
+        const path = paired.map((p) => normalizePath(p.url));
+        const timestamps = paired.map((p) => p.ts);
         const startedAt = r.started_at;
         const endedAt = r.ended_at;
         const durationSec = Math.round(
@@ -311,6 +313,7 @@ export const analyticsRouter = t.router({
           entryPage: path[0] ?? "/",
           exitPage: path[path.length - 1] ?? "/",
           path,
+          timestamps,
           browser: r.browser || null,
           device: r.device || null,
           os: r.os || null,
