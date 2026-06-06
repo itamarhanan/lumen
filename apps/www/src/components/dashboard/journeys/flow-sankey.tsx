@@ -1,11 +1,15 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { RefreshCw, AlertCircle, ArrowRight } from "lucide-react";
 import {
   Sankey,
   ResponsiveContainer,
   Tooltip as RechartsTooltip,
 } from "recharts";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
 import { aggregateSankey } from "@/lib/analytics/aggregate-sankey";
 import type { SankeyData, SankeyLink } from "@/lib/analytics/aggregate-sankey";
 
@@ -136,18 +140,54 @@ export function FlowSankey({ data, loading, error, onRetry }: ComProps) {
   }, []);
 
   if (loading) {
-    return <Skeleton />;
+    return (
+      <div className="flex flex-col gap-3 rounded-[1.5rem] bg-muted dark:bg-white/4 p-4 sm:p-5">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-4 w-48" />
+        <Skeleton className="mt-2 h-80 w-full" />
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorState onRetry={onRetry} />;
+    return (
+      <div className="rounded-[1.5rem] bg-muted dark:bg-white/4">
+        <Empty>
+          <EmptyMedia variant="icon">
+            <AlertCircle className="text-destructive" />
+          </EmptyMedia>
+          <EmptyTitle>Failed to load flow data</EmptyTitle>
+          <EmptyDescription>
+            Something went wrong while fetching page transitions
+          </EmptyDescription>
+          {onRetry && (
+            <Button variant="outline" size="sm" onClick={onRetry}>
+              <RefreshCw />
+              Try again
+            </Button>
+          )}
+        </Empty>
+      </div>
+    );
   }
 
   const chartData = data ?? getMockSankeyData();
   const hasData = chartData.nodes.length > 1 && chartData.links.length > 0;
 
   if (!hasData) {
-    return <EmptyState />;
+    return (
+      <div className="rounded-[1.5rem] bg-muted dark:bg-white/4">
+        <Empty>
+          <EmptyMedia variant="icon">
+            <ArrowRight className="text-foreground/25" />
+          </EmptyMedia>
+          <EmptyTitle>No page views recorded for this period</EmptyTitle>
+          <EmptyDescription>
+            Transitions between pages will appear here once visitors start browsing
+          </EmptyDescription>
+        </Empty>
+      </div>
+    );
   }
 
   const connectivity = buildConnectivityMap(
@@ -353,92 +393,6 @@ function SankeyTip({
         </span>{" "}
         sessions
       </p>
-    </div>
-  );
-}
-
-function Skeleton() {
-  return (
-    <div className="flex flex-col gap-3 rounded-[1.5rem] bg-muted dark:bg-white/4 p-4 sm:p-5">
-      <div className="h-4 w-28 animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />
-      <div className="h-4 w-48 animate-pulse rounded-lg bg-black/3 dark:bg-white/3" />
-      <div className="mt-2 h-80 w-full animate-pulse rounded-xl bg-black/3 dark:bg-white/3" />
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col gap-3 rounded-[1.5rem] bg-muted dark:bg-white/4 p-6 sm:p-8">
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="size-10 rounded-xl border border-dashed border-foreground/15 flex items-center justify-center mb-4">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-foreground/25"
-          >
-            <path d="M5 12h14M12 5l7 7-7 7" />
-          </svg>
-        </div>
-        <p className="text-sm font-medium text-foreground/60">
-          No page views recorded for this period
-        </p>
-        <p className="mt-1 text-xs text-foreground/30">
-          Transitions between pages will appear here once visitors start browsing
-        </p>
-      </div>
-    </div>
-  );
-}
-
-function ErrorState({ onRetry }: { onRetry?: () => void }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-[1.5rem] bg-muted dark:bg-white/4 p-6 sm:p-8">
-      <div className="flex flex-col items-center justify-center py-12 text-center">
-        <div className="size-10 rounded-xl border border-dashed border-red-500/20 flex items-center justify-center mb-4">
-          <svg
-            width="18"
-            height="18"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="1.5"
-            className="text-red-500/40"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 8v4M12 16h.01" />
-          </svg>
-        </div>
-        <p className="text-sm font-medium text-foreground/60">
-          Failed to load flow data
-        </p>
-        <p className="mt-1 mb-4 text-xs text-foreground/30">
-          Something went wrong while fetching page transitions
-        </p>
-        {onRetry && (
-          <button
-            onClick={onRetry}
-            className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 hover:bg-primary/15 text-primary text-xs font-medium px-3.5 py-2 transition-colors"
-          >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M21 12a9 9 0 1 1-9-9" />
-              <path d="M21 3v5h-5" />
-            </svg>
-            Try again
-          </button>
-        )}
-      </div>
     </div>
   );
 }

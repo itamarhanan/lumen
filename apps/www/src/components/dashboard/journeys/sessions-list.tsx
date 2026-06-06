@@ -1,8 +1,12 @@
 "use client";
 
 import { useState, useCallback, useMemo } from "react";
-import { ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, RefreshCw, AlertCircle, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
+import { Empty, EmptyMedia, EmptyTitle, EmptyDescription } from "@/components/ui/empty";
+import { Badge } from "@/components/ui/badge";
 import { PathNodes } from "./path-nodes";
 
 const PAGE_SIZE = 50;
@@ -153,15 +157,56 @@ export function SessionsList({
   );
 
   if (loading) {
-    return <Skeleton />;
+    return (
+      <div className="flex flex-col gap-3">
+        <Skeleton className="h-4 w-20" />
+        <div className="rounded-[1.5rem] bg-muted dark:bg-white/4 overflow-hidden">
+          <div className="flex flex-col gap-px p-1">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <Skeleton key={i} className="h-14 w-full" />
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <ErrorState onRetry={onRetry} />;
+    return (
+      <div className="rounded-[1.5rem] bg-muted dark:bg-white/4">
+        <Empty>
+          <EmptyMedia variant="icon">
+            <AlertCircle className="text-destructive" />
+          </EmptyMedia>
+          <EmptyTitle>Failed to load sessions</EmptyTitle>
+          <EmptyDescription>
+            Something went wrong while fetching session data
+          </EmptyDescription>
+          {onRetry && (
+            <Button variant="outline" size="sm" onClick={onRetry}>
+              <RefreshCw />
+              Try again
+            </Button>
+          )}
+        </Empty>
+      </div>
+    );
   }
 
   if (allSessions.length === 0) {
-    return <EmptyState />;
+    return (
+      <div className="rounded-[1.5rem] bg-muted dark:bg-white/4">
+        <Empty>
+          <EmptyMedia variant="icon">
+            <Users className="text-foreground/25" />
+          </EmptyMedia>
+          <EmptyTitle>No page views recorded for this period</EmptyTitle>
+          <EmptyDescription>
+            Sessions will appear here once visitors start browsing
+          </EmptyDescription>
+        </Empty>
+      </div>
+    );
   }
 
   return (
@@ -215,9 +260,9 @@ export function SessionsList({
                   </div>
 
                   <div className="flex items-center gap-4 shrink-0">
-                    <span className="text-xs tabular-nums text-foreground/45 w-12 text-right">
+                    <Badge variant="outline" className="text-xs tabular-nums text-foreground/45 font-normal">
                       {s.pages} {s.pages === 1 ? "page" : "pages"}
-                    </span>
+                    </Badge>
                     <span className="text-xs tabular-nums text-foreground/45 w-16 text-right">
                       {formatDuration(s.duration, s.pages)}
                     </span>
@@ -311,10 +356,11 @@ function PaginationBar({
 
   return (
     <div className="flex items-center justify-between gap-4 px-1">
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => onPageChange(page - 1)}
         disabled={page <= 1}
-        className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
       >
         <svg
           width="12"
@@ -327,7 +373,7 @@ function PaginationBar({
           <path d="M15 18l-6-6 6-6" />
         </svg>
         Previous
-      </button>
+      </Button>
 
       <div className="flex items-center gap-1">
         {pages.map((item, i) =>
@@ -339,26 +385,23 @@ function PaginationBar({
               &hellip;
             </span>
           ) : (
-            <button
+            <Button
               key={item}
+              variant={item === page ? "outline" : "ghost"}
+              size="icon-xs"
               onClick={() => onPageChange(item)}
-              className={cn(
-                "size-7 rounded-lg text-xs font-medium transition-colors",
-                item === page
-                  ? "bg-primary/10 text-primary"
-                  : "text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5",
-              )}
             >
               {item}
-            </button>
+            </Button>
           ),
         )}
       </div>
 
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => onPageChange(page + 1)}
         disabled={page >= totalPages}
-        className="inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs text-foreground/40 hover:text-foreground hover:bg-accent dark:hover:bg-white/5 transition-colors disabled:opacity-30 disabled:pointer-events-none"
       >
         Next
         <svg
@@ -371,99 +414,7 @@ function PaginationBar({
         >
           <path d="M9 18l6-6-6-6" />
         </svg>
-      </button>
+      </Button>
     </div>
   );
 }
-
-function Skeleton() {
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="h-4 w-20 animate-pulse rounded-lg bg-black/5 dark:bg-white/5" />
-      <div className="rounded-[1.5rem] bg-muted dark:bg-white/4 overflow-hidden">
-        <div className="flex flex-col gap-px p-1">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="h-14 animate-pulse rounded-xl bg-black/3 dark:bg-white/3"
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center rounded-[1.5rem] bg-muted dark:bg-white/4 px-6">
-      <div className="size-10 rounded-xl border border-dashed border-foreground/15 flex items-center justify-center mb-4">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="text-foreground/25"
-        >
-          <path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-        </svg>
-      </div>
-      <p className="text-sm font-medium text-foreground/60">
-        No page views recorded for this period
-      </p>
-      <p className="mt-1 text-xs text-foreground/30">
-        Sessions will appear here once visitors start browsing
-      </p>
-    </div>
-  );
-}
-
-function ErrorState({ onRetry }: { onRetry?: () => void }) {
-  return (
-    <div className="flex flex-col items-center justify-center py-16 text-center rounded-[1.5rem] bg-muted dark:bg-white/4 px-6">
-      <div className="size-10 rounded-xl border border-dashed border-red-500/20 flex items-center justify-center mb-4">
-        <svg
-          width="18"
-          height="18"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          className="text-red-500/40"
-        >
-          <circle cx="12" cy="12" r="10" />
-          <path d="M12 8v4M12 16h.01" />
-        </svg>
-      </div>
-      <p className="text-sm font-medium text-foreground/60">
-        Failed to load sessions
-      </p>
-      <p className="mt-1 mb-4 text-xs text-foreground/30">
-        Something went wrong while fetching session data
-      </p>
-      {onRetry && (
-        <button
-          onClick={onRetry}
-          className="inline-flex items-center gap-1.5 rounded-xl bg-primary/10 hover:bg-primary/15 text-primary text-xs font-medium px-3.5 py-2 transition-colors"
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-          >
-            <path d="M21 12a9 9 0 1 1-9-9" />
-            <path d="M21 3v5h-5" />
-          </svg>
-          Try again
-        </button>
-      )}
-    </div>
-  );
-}
-
