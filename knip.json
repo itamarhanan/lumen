@@ -2,7 +2,7 @@
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
     "apps/www": {
-      "entry": ["src/app/**/page.tsx"],
+      "entry": ["src/app/**/page.tsx", "src/lib/aggregate-sankey.ts"],
       "project": ["src/**/*.{ts,tsx}"],
       "ignoreDependencies": [
         "@base-ui/react",
@@ -34,16 +34,17 @@
       ]
     },
     "packages/clickhouse": {
-      "ignoreDependencies": [
-        "@eslint/js",
-        "globals",
-        "typescript-eslint"
-      ]
+      "ignoreDependencies": ["@eslint/js", "globals", "typescript-eslint"]
     }
   },
   "ignore": [
     "apps/www/src/components/ui/**",
-    "packages/config/tsconfig.www.json"
+    "packages/config/tsconfig.www.json",
+    "apps/www/src/components/dashboard/journeys/flow-sankey.tsx",
+    "apps/www/src/lib/analytics/normalize-path.ts",
+    "apps/www/src/lib/analytics/aggregate-sankey.ts",
+    "apps/www/src/components/dashboard/journeys/path-nodes.tsx",
+    "apps/www/src/components/dashboard/journeys/sessions-list.tsx"
   ],
   "ignoreDependencies": [
     "supabase",

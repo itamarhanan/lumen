@@ -116,7 +116,11 @@ export const analyticsRouter = t.router({
            AND timestamp <= {to: String}
          GROUP BY date
          ORDER BY date ASC`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       return rows.map((r) => ({
@@ -150,7 +154,11 @@ export const analyticsRouter = t.router({
          GROUP BY path
          ORDER BY pageviews DESC
          LIMIT 10`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       return rows.map((r) => ({
@@ -188,7 +196,11 @@ export const analyticsRouter = t.router({
          GROUP BY name
          ORDER BY visitors DESC
          LIMIT 10`,
-        { project_id: input.projectId, from: toChDate(input.from), to: toChDate(input.to) },
+        {
+          project_id: input.projectId,
+          from: toChDate(input.from),
+          to: toChDate(input.to),
+        },
       );
 
       const total = rows.reduce((s, r) => s + Number(r.visitors), 0);
@@ -318,7 +330,11 @@ export const analyticsRouter = t.router({
       const transitions = [...transitionCounts.entries()]
         .map(([key, value]) => {
           const sep = key.indexOf("\0");
-          return { source: key.slice(0, sep), target: key.slice(sep + 1), value };
+          return {
+            source: key.slice(0, sep),
+            target: key.slice(sep + 1),
+            value,
+          };
         })
         .sort((a, b) => b.value - a.value);
 
