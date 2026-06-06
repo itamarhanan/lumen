@@ -23,11 +23,11 @@ function formatDuration(seconds: number, pageCount: number): string {
 interface Session {
   sessionId: string;
   personId: string;
-  pages: string[];
+  path: string[];
+  pages: number;
   entryPage: string;
   exitPage: string;
-  pageCount: number;
-  durationSeconds: number;
+  duration: number;
   browser: string | null;
   device: string | null;
   os: string | null;
@@ -88,23 +88,23 @@ function generateMockSessions(): Session[] {
   const sessions: Session[] = [];
 
   for (let i = 0; i < 350; i++) {
-    const pages = generatePageSequence(rng);
-    const entryPage = pages[0] ?? "/";
-    const exitPage = pages[pages.length - 1] ?? "/";
-    const pageCount = pages.length;
-    const durationSeconds =
-      pageCount <= 1 ? 0 : Math.round(pageCount * (30 + rng() * 270));
+    const path = generatePageSequence(rng);
+    const entryPage = path[0] ?? "/";
+    const exitPage = path[path.length - 1] ?? "/";
+    const pages = path.length;
+    const duration =
+      pages <= 1 ? 0 : Math.round(pages * (30 + rng() * 270));
 
     sessions.push({
       sessionId: `ses_${String(i + 1).padStart(6, "0")}`,
       personId: `pers_${Math.floor(rng() * 1000)
         .toString(16)
         .padStart(6, "0")}`,
+      path,
       pages,
       entryPage,
       exitPage,
-      pageCount,
-      durationSeconds,
+      duration,
       browser: pick(BROWSERS, rng),
       device: pick(DEVICES, rng),
       os: pick(OSES, rng),
@@ -216,10 +216,10 @@ export function SessionsList({
 
                   <div className="flex items-center gap-4 shrink-0">
                     <span className="text-xs tabular-nums text-foreground/45 w-12 text-right">
-                      {s.pageCount} {s.pageCount === 1 ? "page" : "pages"}
+                      {s.pages} {s.pages === 1 ? "page" : "pages"}
                     </span>
                     <span className="text-xs tabular-nums text-foreground/45 w-16 text-right">
-                      {formatDuration(s.durationSeconds, s.pageCount)}
+                      {formatDuration(s.duration, s.pages)}
                     </span>
                     <span className="text-foreground/20 shrink-0">
                       {isOpen ? (
@@ -235,7 +235,7 @@ export function SessionsList({
                   <div className="px-3 sm:px-4 pb-4">
                     <div className="ml-0.5 border-l-2 border-border/40 dark:border-white/8 pl-4 space-y-3">
                       <div className="pt-1">
-                        <PathNodes pages={s.pages} />
+                        <PathNodes path={s.path} />
                       </div>
 
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-foreground/45">
